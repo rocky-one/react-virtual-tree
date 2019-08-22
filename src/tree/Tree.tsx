@@ -78,6 +78,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         const {
             nodeHeight = 30,
         } = this.props
+        // 计算开始和结束数据的索引
         const height = this.treeRef.offsetHeight
         const startIndex = Math.floor(this.treeRef.scrollTop / nodeHeight)
         let viewDataLen = Math.ceil(height / nodeHeight) + 1

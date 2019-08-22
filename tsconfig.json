@@ -9,7 +9,8 @@
     "jsx": "react",
     "moduleResolution": "node",
     "rootDirs": ["src", "stories"],
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "declaration": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "build", "scripts"]

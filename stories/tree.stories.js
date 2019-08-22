@@ -53,10 +53,27 @@ for (let i = 0; i < 100; i++) {
     })
 }
 
+
+function loadData(){
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve([{
+                name: '哈哈',
+                id: '1.1.1',
+                parentId: '1.1',
+            }])
+        }, 1000)
+    })
+}
+function onOpen(item){
+    console.log(item, 'onOpen')
+}
+
+
 storiesOf('Tree', module)
     .add('Tree', () => <Tree data={data}
-        // onOpen={this.onOpen}
-        // loadData={this.loadData}
+        onOpen={onOpen}
+        loadData={loadData}
         width={200}
         height={300}
         nodeHeight={30} />)

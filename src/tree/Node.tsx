@@ -8,9 +8,9 @@ interface NodeProps {
     nodeHeight?: number,
 }
 
-interface ArrowStyle {
+interface ArrowStyle { 
     [propName: string]: any
-}
+} 
 export default class Node extends React.Component<NodeProps>  {
     constructor(props: NodeProps) {
         super(props)

@@ -6,10 +6,11 @@ export default class HandleTree implements HandleTreeInterface {
         this.mapDatas(option.data)
         this.initViewData()
     }
-    private viewData: Array<NodeItem>
+    private viewData: Array<NodeItem> = []
     public getViewData = () => this.viewData
     private mapData: MapData = {}
 
+    // 获取要显示的子节点 注意可能跨级显示
     private getShowChildData = (item: NodeItem) => {
         const mapData = this.mapData[item.level + 1][item.id]
         const child: Array<NodeItem> = []
@@ -24,6 +25,7 @@ export default class HandleTree implements HandleTreeInterface {
         return child
     }
 
+    // 拉平要显示的数据放到数组中
     private initViewData = () => {
         const dataMap = this.mapData['0']
         const data = Object.values(dataMap)
@@ -38,6 +40,7 @@ export default class HandleTree implements HandleTreeInterface {
             }
         }
     }
+    // 组装成新的结构 根据层级 id为key
     private mapDatas = (data: []) => {
         const dat = this.mapData
         bfTree(data, (item: NodeItem) => {
@@ -70,6 +73,8 @@ export default class HandleTree implements HandleTreeInterface {
         }
         this.mapData[parentItem.level + 1][parentItem.id] = child
     }
+    // 插入子节点到 当前的节点下
+    // 1 插入到viewData 2 插入到映射mapData
     public insertChild = (parentItem: NodeItem, child: Array<NodeItem> = []) => {
         parentItem.open = true
         parentItem.requested = true
