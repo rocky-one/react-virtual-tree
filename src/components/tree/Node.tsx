@@ -1,16 +1,11 @@
-import * as React from 'react';
-import { NodeItem } from './interface'
+import * as React from 'react'
+import Checkbox from '../checkbox'
+import { NodeProps } from './interface'
 
-interface NodeProps {
-    item: NodeItem
-    onOpen?: (item: NodeItem) => void,
-    onClose?: (item: NodeItem) => void,
-    nodeHeight?: number,
+interface ArrowStyle {
+    [propName: string]: any
 }
 
-interface ArrowStyle { 
-    [propName: string]: any
-} 
 export default class Node extends React.Component<NodeProps>  {
     constructor(props: NodeProps) {
         super(props)
@@ -20,6 +15,7 @@ export default class Node extends React.Component<NodeProps>  {
             item,
             onOpen,
         } = this.props
+
         onOpen(item)
     }
     onClose = () => {
@@ -27,12 +23,14 @@ export default class Node extends React.Component<NodeProps>  {
             item,
             onClose,
         } = this.props
+
         onClose(item)
     }
     renderArrow = () => {
         const {
             item
         } = this.props
+
         let style: ArrowStyle = {
             marginLeft: `${item.level * 10}px`,
             cursor: 'pointer',
@@ -48,14 +46,32 @@ export default class Node extends React.Component<NodeProps>  {
         }
         return <span style={style} ></span>
     }
+    onChangeCheckbox = (status: boolean) => {
+        const {
+            item
+        } = this.props
+
+        item.checked = status
+        this.setState({})
+    }
+    renderCheckbox = () => {
+        const { checkable, item } = this.props
+
+        if (checkable) {
+            return <Checkbox
+                checked={item.checked}
+                onChange={this.onChangeCheckbox} />
+        }
+    }
     render() {
         const {
             item,
             nodeHeight,
         } = this.props
 
-        return <div className="virtual-tree-node" style={{height: `${nodeHeight}px`}}>
+        return <div className="virtual-tree-node" style={{ height: `${nodeHeight}px` }}>
             {this.renderArrow()}
+            {this.renderCheckbox()}
             <span >{item.name}</span>
         </div>
     }

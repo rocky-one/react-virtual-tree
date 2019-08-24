@@ -1,18 +1,9 @@
 import * as React from 'react'
 import HandleTree from './HandleTree'
-import { NodeItem } from './interface'
+import { TreeProps, NodeItem } from './interface'
 import Node from './Node'
-import './tree.css'
-interface TreeProps<T> {
-    data: T[],
-    onOpen?: (item: NodeItem) => void,
-    onClose?: (item: NodeItem) => void,
-    loadData?: (item: NodeItem) => Promise<void>,
-    width?: number,
-    height?: number,
-    nodeHeight?: number,
-    treeRef?: any,
-}
+import './style/tree.scss'
+
 interface TreeState<T> {
     data: Array<NodeItem>
 }
@@ -38,6 +29,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         const {
             loadData,
         } = this.props
+
         if (!item.requested) {
             if (loadData && typeof loadData === 'function') {
                 loadData(item).then(child => {
@@ -53,7 +45,6 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                 data: this.handleTree.getViewData()
             })
         }
-
     }
     onClose = (item: NodeItem) => {
         this.handleTree.close(item)
@@ -77,14 +68,16 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         } = this.state
         const {
             nodeHeight = 30,
+            checkable,
         } = this.props
+
         // 计算开始和结束数据的索引
         const height = this.treeRef.offsetHeight
         const startIndex = Math.floor(this.treeRef.scrollTop / nodeHeight)
         let viewDataLen = Math.ceil(height / nodeHeight) + 1
         let end = false
         if (startIndex + viewDataLen >= data.length) {
-            viewDataLen-=1
+            viewDataLen -= 1
             end = true
         }
         const newData = data.slice(startIndex, startIndex + viewDataLen)
@@ -92,6 +85,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         const topHeight = startIndex * nodeHeight
         const middleHeight = height + (end ? 0 : nodeHeight)
         const bottomHeight = sumHeight - middleHeight - topHeight
+
         return [
             <div key="top" style={{ height: `${topHeight}px` }}></div>,
             <div key="middle" style={{ height: `${middleHeight}px`, overflow: 'hidden' }}>
@@ -100,7 +94,8 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                         <Node item={item}
                             onOpen={this.onOpen}
                             onClose={this.onClose}
-                            nodeHeight={nodeHeight} />
+                            nodeHeight={nodeHeight}
+                            checkable={checkable} />
                     </div>)
                 }
             </div>,
@@ -112,6 +107,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             width,
             height,
         } = this.props
+
         return <div className="list"
             style={{
                 width: width ? `${width}px` : 'auto',

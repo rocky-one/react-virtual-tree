@@ -26,3 +26,21 @@ export interface TransformItem {
     children?: Array<NodeItem>;
     [propName: string]: any;
 }
+
+interface BaseProps {
+    onOpen?: (item: NodeItem) => void,
+    onClose?: (item: NodeItem) => void,
+    nodeHeight?: number,
+    checkable?: boolean,
+}
+export interface NodeProps extends BaseProps {
+    item: NodeItem
+}
+
+export interface TreeProps<T> extends BaseProps {
+    data: T[],
+    loadData?: (item: NodeItem) => Promise<void>,
+    width?: number,
+    height?: number,
+    treeRef?: any,
+}

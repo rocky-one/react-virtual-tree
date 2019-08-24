@@ -56,26 +56,31 @@ export default class HandleTree implements HandleTreeInterface {
         })
         this.mapData = dat
     }
-    private initChildData = (parentItem: NodeItem, child: Array<NodeItem> = []) => {
+    private initChildData = (parentItem: NodeItem, child: Array<NodeItem> = []) :Array<NodeItem> => {
         return child.map(item => ({
             ...item,
             level: parentItem.level + 1
         }))
     }
-    private insertChildToViewData = (parentItem: NodeItem, child: Array<NodeItem> = []) => {
+    private insertChildToViewData = (parentItem: NodeItem, child: Array<NodeItem> = []): void => {
         const index = this.viewData.findIndex(item => item.id === parentItem.id)
         index > -1 && this.viewData.splice(index + 1, 0, ...child)
     }
-    private insertChildToMapData = (parentItem: NodeItem, child: Array<NodeItem> = []) => {
+    private insertChildToMapData = (parentItem: NodeItem, child: Array<NodeItem> = []): void => {
         const childMap = this.mapData[parentItem.level + 1]
         if (!childMap) {
             this.mapData[parentItem.level + 1] = {}
         }
         this.mapData[parentItem.level + 1][parentItem.id] = child
     }
+    // 销毁
+    public destory = (): void => {
+        this.viewData = null
+        this.mapData = null
+    }
     // 插入子节点到 当前的节点下
     // 1 插入到viewData 2 插入到映射mapData
-    public insertChild = (parentItem: NodeItem, child: Array<NodeItem> = []) => {
+    public insertChild = (parentItem: NodeItem, child: Array<NodeItem> = []): void => {
         parentItem.open = true
         parentItem.requested = true
         const newChild = this.initChildData(parentItem, child)
@@ -83,16 +88,17 @@ export default class HandleTree implements HandleTreeInterface {
         this.insertChildToViewData(parentItem, newChild)
         this.insertChildToMapData(parentItem, newChild)
     }
-    public open = (parentItem: NodeItem) => {
+    public open = (parentItem: NodeItem): void => {
         parentItem.open = true
         const showChild = this.getShowChildData(parentItem)
         const index = this.viewData.findIndex(item => item.id === parentItem.id)
         index > -1 && this.viewData.splice(index + 1, 0, ...showChild)
     }
-    public close = (parentItem: NodeItem) => {
+    public close = (parentItem: NodeItem): void => {
         parentItem.open = false
         const closeChild = this.getShowChildData(parentItem)
         const index = this.viewData.findIndex(item => item.parentId === parentItem.id)
         index > -1 && this.viewData.splice(index, closeChild.length)
     }
+
 }

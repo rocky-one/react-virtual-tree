@@ -2,7 +2,7 @@ import React from 'react';
 
 import { storiesOf } from '@storybook/react';
 
-import Tree from '../src/tree';
+import Tree from '../src/components/tree';
 
 
 const data = [{
@@ -76,5 +76,6 @@ storiesOf('Tree', module)
         loadData={loadData}
         width={200}
         height={300}
-        nodeHeight={30} />)
+        nodeHeight={30} 
+        checkable={true} />)
 
