@@ -32,9 +32,11 @@ interface BaseProps {
     onClose?: (item: NodeItem) => void,
     nodeHeight?: number,
     checkable?: boolean,
+    linkage?: boolean,
 }
 export interface NodeProps extends BaseProps {
-    item: NodeItem
+    item: NodeItem,
+    onCheckLinkage?: (item: NodeItem) => void,
 }
 
 export interface TreeProps<T> extends BaseProps {

@@ -38,7 +38,7 @@ export default class Node extends React.Component<NodeProps>  {
             width: '12px',
             textAlign: 'center',
         }
-        if (item.isLeaf) {
+        if (item.hasLeaf) {
             if (!item.open) {
                 return <span style={style} onClick={this.onOpen} >+</span>
             }
@@ -48,18 +48,24 @@ export default class Node extends React.Component<NodeProps>  {
     }
     onChangeCheckbox = (status: boolean) => {
         const {
-            item
+            item,
+            linkage,
+            onCheckLinkage,
         } = this.props
-
-        item.checked = status
-        this.setState({})
+        item.checked = status ? 1 : 0
+        // 联动
+        if (linkage) {
+            onCheckLinkage(item)
+        // 不联动
+        } else {
+            this.setState({})
+        }
     }
     renderCheckbox = () => {
         const { checkable, item } = this.props
-
         if (checkable) {
             return <Checkbox
-                checked={item.checked}
+                checked={item.checked===1}
                 onChange={this.onChangeCheckbox} />
         }
     }

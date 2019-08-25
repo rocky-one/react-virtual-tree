@@ -1,10 +1,11 @@
 import { HandleTreeInterface, MapData, NodeItem } from './interface'
-import { bfTree, dfsTree } from './utils'
+import { bfTree, dfsTree, getParentCheckStatus } from './utils'
 
 export default class HandleTree implements HandleTreeInterface {
     constructor(option: { data: any; }) {
         this.mapDatas(option.data)
         this.initViewData()
+        console.log(this.mapData, 8)
     }
     private viewData: Array<NodeItem> = []
     public getViewData = () => this.viewData
@@ -32,7 +33,7 @@ export default class HandleTree implements HandleTreeInterface {
         this.viewData = data[0].map(item => item)
         for (let i = 0; i < this.viewData.length; i++) {
             const item = this.viewData[i]
-            if (item.open && item.isLeaf) {
+            if (item.open && item.hasLeaf) {
                 const child = this.getShowChildData(item)
                 const len = child.length
                 this.viewData.splice(i + 1, 0, ...child)
@@ -49,14 +50,14 @@ export default class HandleTree implements HandleTreeInterface {
             if (!dat[level]) dat[level] = {}
             if (!dat[level][parentId]) dat[level][parentId] = []
             if (item.children) {
-                item.isLeaf = true
+                item.hasLeaf = true
                 item.requested = true
             }
             dat[`${level}`][parentId].push(item)
         })
         this.mapData = dat
     }
-    private initChildData = (parentItem: NodeItem, child: Array<NodeItem> = []) :Array<NodeItem> => {
+    private initChildData = (parentItem: NodeItem, child: Array<NodeItem> = []): Array<NodeItem> => {
         return child.map(item => ({
             ...item,
             level: parentItem.level + 1
@@ -93,12 +94,60 @@ export default class HandleTree implements HandleTreeInterface {
         const showChild = this.getShowChildData(parentItem)
         const index = this.viewData.findIndex(item => item.id === parentItem.id)
         index > -1 && this.viewData.splice(index + 1, 0, ...showChild)
+        this.onCheckedChild(parentItem)
     }
     public close = (parentItem: NodeItem): void => {
         parentItem.open = false
         const closeChild = this.getShowChildData(parentItem)
         const index = this.viewData.findIndex(item => item.parentId === parentItem.id)
         index > -1 && this.viewData.splice(index, closeChild.length)
+    }
+    // 获取同级
+    private getSameLevelData = (item: NodeItem): Array<NodeItem> => {
+        return this.mapData[item.level][item.parentId || 'root']
+    }
+    // 获取子集
+    private getChildData = (item: NodeItem): Array<NodeItem> => {
+        if (item.hasLeaf) {
+            return this.mapData[item.level - 1][item.id]
+        }
+        return []
+    }
+    private onCheckedChild = (item: NodeItem) => {
+        if (item.hasLeaf) {
+            dfsTree(item.children, (n: NodeItem) => {
+                n.checked = item.checked
+            })
+        }
+    }
+    public onCheckLinkage = (item: NodeItem) => {
+        let cur = item
+        // 向上
+        for (let i = item.level; i >= 0; i--) {
+            let status = getParentCheckStatus(this.getSameLevelData(cur))
+            // 同级是否都选中 如果是 则父级选中
+            if (cur.parentId) {
+                const keys = Object.keys(this.mapData[cur.level - 1])
+                sign:
+                for (let i = 0; i < keys.length; i++) {
+                    const data = this.mapData[cur.level - 1][keys[i]]
+                    for (let j = 0; j < data.length; j++) {
+                        if (data[j].id === cur.parentId) {
+                            data[j].checked = status
+                            cur = data[j]
+                            break sign
+                        }
+                    }
+                }
+            }
+        }
+        this.onCheckedChild(item)
+        // // 向下
+        // if (item.hasLeaf) {
+        //     dfsTree(item.children, (n: NodeItem) => {
+        //         n.checked = item.checked
+        //     })
+        // }
     }
 
 }

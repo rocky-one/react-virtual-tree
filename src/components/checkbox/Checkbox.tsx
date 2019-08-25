@@ -9,7 +9,10 @@ interface checkboxProps {
 
 function Checkbox(props: checkboxProps) {
     const [checked, setCheck] = React.useState(props.checked || false)
-
+    React.useEffect(() => {
+        setCheck(props.checked)
+    }, [props.checked, setCheck])
+    
     return (
         <span className={classNames('r-h-checkbox', {
             'r-h-checked': checked,

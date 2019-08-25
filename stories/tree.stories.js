@@ -15,7 +15,7 @@ const data = [{
             parentId: '1',
             id: '1.1',
             name: '1-1',
-            isLeaf: true,
+            hasLeaf: true,
         },
         {
             parentId: '1',

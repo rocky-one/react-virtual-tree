@@ -61,6 +61,10 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     onScroll = () => {
         this.setState({})
     }
+    onCheckLinkage = (item: NodeItem) =>{
+        this.handleTree.onCheckLinkage(item)
+        this.setState({})
+    }
     renderChild = () => {
         if (!this.treeRef) return null
         const {
@@ -69,6 +73,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         const {
             nodeHeight = 30,
             checkable,
+            linkage = true,
         } = this.props
 
         // 计算开始和结束数据的索引
@@ -95,7 +100,9 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                             onOpen={this.onOpen}
                             onClose={this.onClose}
                             nodeHeight={nodeHeight}
-                            checkable={checkable} />
+                            checkable={checkable} 
+                            linkage={linkage}
+                            onCheckLinkage={this.onCheckLinkage} />
                     </div>)
                 }
             </div>,

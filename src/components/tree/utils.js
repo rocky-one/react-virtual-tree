@@ -43,3 +43,21 @@ export function dfsTree(tree = [], cb) {
     }
     return nodeList
 }
+
+
+// 获取父项选中状态 如果当前子节点全部选中则父项选中
+export const getParentCheckStatus = (childData = []) => {
+    let status = 0
+    let sum = 0
+    for (let i = 0; i < childData.length; i++) {
+        if (childData[i].checked) {
+            sum++
+        }
+    }
+    if (sum === childData.length) {
+        status = 1
+    } else if (sum > 0) {
+        status = 2
+    }
+    return status
+}
