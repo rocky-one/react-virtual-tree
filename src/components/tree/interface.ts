@@ -30,9 +30,13 @@ export interface TransformItem {
 interface BaseProps {
     onOpen?: (item: NodeItem) => void,
     onClose?: (item: NodeItem) => void,
+    onMouseEnter?:(item: NodeItem) => void,
+    onMouseLeave?:(item: NodeItem) => void,
+    renderMouseEnter?:(item: NodeItem) => React.ReactNode,
     nodeHeight?: number,
     checkable?: boolean,
     linkage?: boolean,
+    
 }
 export interface NodeProps extends BaseProps {
     item: NodeItem,

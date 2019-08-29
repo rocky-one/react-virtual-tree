@@ -74,6 +74,9 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             nodeHeight = 30,
             checkable,
             linkage = true,
+            onMouseEnter,
+            onMouseLeave,
+            renderMouseEnter,
         } = this.props
 
         // 计算开始和结束数据的索引
@@ -102,7 +105,10 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                             nodeHeight={nodeHeight}
                             checkable={checkable} 
                             linkage={linkage}
-                            onCheckLinkage={this.onCheckLinkage} />
+                            onCheckLinkage={this.onCheckLinkage} 
+                            onMouseEnter={onMouseEnter}
+                            onMouseLeave={onMouseLeave} 
+                            renderMouseEnter={renderMouseEnter} />
                     </div>)
                 }
             </div>,

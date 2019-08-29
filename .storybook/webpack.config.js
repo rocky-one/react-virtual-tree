@@ -12,10 +12,22 @@ module.exports = ({ config }) => {
             {
                 loader: require.resolve('awesome-typescript-loader'),
             },
-            // Optional
             {
                 loader: require.resolve('react-docgen-typescript-loader'),
             },
+            // {
+            //     loader: require.resolve('babel-loader'),
+            //     options: {
+            //         presets: [
+            //             '@babel/preset-env'
+            //         ],
+            //         plugins: [
+            //             ["@babel/plugin-proposal-decorators", { "legacy": true }],
+            //             ["@babel/plugin-proposal-class-properties", { "loose": true }],
+            //             "@babel/plugin-transform-runtime"
+            //         ]
+            //     }
+            // },
         ],
     });
     config.resolve.extensions.push('.ts', '.tsx');

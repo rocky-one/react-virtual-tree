@@ -5,10 +5,15 @@ import { NodeProps } from './interface'
 interface ArrowStyle {
     [propName: string]: any
 }
-
-export default class Node extends React.Component<NodeProps>  {
+interface NodeState {
+    enter: boolean,
+}
+export default class Node extends React.Component<NodeProps, NodeState>  {
     constructor(props: NodeProps) {
         super(props)
+        this.state = {
+            enter: false
+        }
     }
     onOpen = () => {
         const {
@@ -56,7 +61,7 @@ export default class Node extends React.Component<NodeProps>  {
         // 联动
         if (linkage) {
             onCheckLinkage(item)
-        // 不联动
+            // 不联动
         } else {
             this.setState({})
         }
@@ -65,9 +70,41 @@ export default class Node extends React.Component<NodeProps>  {
         const { checkable, item } = this.props
         if (checkable) {
             return <Checkbox
-                checked={item.checked===1}
+                checked={item.checked === 1}
                 onChange={this.onChangeCheckbox} />
         }
+    }
+    onMouseEnter = () => {
+        const {
+            onMouseEnter,
+            item,
+        } = this.props
+        onMouseEnter && onMouseEnter(item)
+        this.setState({
+            enter: true
+        })
+    }
+    onMouseLeave = () => {
+        const {
+            onMouseLeave,
+            item
+        } = this.props
+        onMouseLeave && onMouseLeave(item)
+        this.setState({
+            enter: false
+        })
+    }
+    renderMouseEnter = () => {
+        const {
+            item,
+            renderMouseEnter,
+        } = this.props
+        if (this.state.enter && renderMouseEnter) {
+            return <span>
+                {renderMouseEnter(item)}
+            </span>
+        }
+        return null
     }
     render() {
         const {
@@ -75,10 +112,15 @@ export default class Node extends React.Component<NodeProps>  {
             nodeHeight,
         } = this.props
 
-        return <div className="virtual-tree-node" style={{ height: `${nodeHeight}px` }}>
+        return <div
+            className="virtual-tree-node"
+            style={{ height: `${nodeHeight}px` }}
+            onMouseEnter={this.onMouseEnter}
+            onMouseLeave={this.onMouseLeave}>
             {this.renderArrow()}
             {this.renderCheckbox()}
-            <span >{item.name}</span>
+            <span>{item.name}</span>
+            {this.renderMouseEnter()}
         </div>
     }
 }

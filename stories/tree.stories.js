@@ -1,9 +1,6 @@
 import React from 'react';
-
 import { storiesOf } from '@storybook/react';
-
 import Tree from '../src/components/tree';
-
 
 const data = [{
     name: '1',
@@ -26,6 +23,16 @@ const data = [{
                 {
                     name: '1-1-2',
                     id: '1.1.2',
+                    parentId: '1.2'
+                },
+                {
+                    name: '1-1-3',
+                    id: '1.1.3',
+                    parentId: '1.2'
+                },
+                {
+                    name: '1-1-4',
+                    id: '1.1.4',
                     parentId: '1.2'
                 }
             ]
@@ -53,7 +60,6 @@ for (let i = 0; i < 100; i++) {
     })
 }
 
-
 function loadData(){
     return new Promise(resolve => {
         setTimeout(() => {
@@ -65,17 +71,37 @@ function loadData(){
         }, 1000)
     })
 }
+
 function onOpen(item){
     console.log(item, 'onOpen')
 }
 
+function onMouseEnter(item){
+    console.log(item, 'onMouseEnter')
+}
+
+function onMouseLeave(item){
+    console.log(item, 'onMouseLeave')
+}
+let treeRef
+function onDelete(item) {
+    treeRef.handleTree.removeNode(item)
+    console.log(item,treeRef, 'onDelete')
+}
 
 storiesOf('Tree', module)
-    .add('Tree', () => <Tree data={data}
+    .add('Tree', () => <Tree 
+        ref={r=> treeRef = r}
+        data={data}
         onOpen={onOpen}
         loadData={loadData}
         width={200}
         height={300}
         nodeHeight={30} 
-        checkable={true} />)
+        checkable={true} 
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave} 
+        renderMouseEnter={(item)=>{
+            return <span onClick={() => onDelete(item)}>删除</span>
+        }}/>)
 

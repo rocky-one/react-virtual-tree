@@ -1,11 +1,18 @@
 import { HandleTreeInterface, MapData, NodeItem } from './interface'
-import { bfTree, dfsTree, getParentCheckStatus } from './utils'
+import {
+    bfTree,
+    dfsTree,
+    getParentCheckStatus,
+    removeViewDataNode,
+    removeMapDataNode,
+} from './utils'
 
 export default class HandleTree implements HandleTreeInterface {
     constructor(option: { data: any; }) {
         this.mapDatas(option.data)
         this.initViewData()
-        console.log(this.mapData, 8)
+        console.log(this.mapData, 'mapData')
+        console.log(this.viewData, 'viewData')
     }
     private viewData: Array<NodeItem> = []
     public getViewData = () => this.viewData
@@ -84,10 +91,17 @@ export default class HandleTree implements HandleTreeInterface {
     public insertChild = (parentItem: NodeItem, child: Array<NodeItem> = []): void => {
         parentItem.open = true
         parentItem.requested = true
+        parentItem.hasLeaf = true
         const newChild = this.initChildData(parentItem, child)
         parentItem.children = newChild
         this.insertChildToViewData(parentItem, newChild)
         this.insertChildToMapData(parentItem, newChild)
+        this.onCheckedChild(parentItem)
+    }
+    // 移除节点
+    public removeNode = (item: NodeItem): void => {
+        removeViewDataNode(item, this.viewData)
+        removeMapDataNode(item, this.mapData)
     }
     public open = (parentItem: NodeItem): void => {
         parentItem.open = true
@@ -116,7 +130,7 @@ export default class HandleTree implements HandleTreeInterface {
     private onCheckedChild = (item: NodeItem) => {
         if (item.hasLeaf) {
             dfsTree(item.children, (n: NodeItem) => {
-                n.checked = item.checked
+                n.checked = item.checked || 0
             })
         }
     }

@@ -1,3 +1,8 @@
+/**
+ * @desc  广度
+ * @param {*} tree 
+ * @param {*} cb 
+ */
 export function bfTree(tree = [], cb) {
     let queue = []
     for (let i = 0; i < tree.length; i++) {
@@ -16,6 +21,11 @@ export function bfTree(tree = [], cb) {
     }
 }
 
+/**
+ * 深度
+ * @param {*} tree 
+ * @param {*} cb 
+ */
 export function dfsTree(tree = [], cb) {
     let nodeList = []
     if (tree && tree.length > 0) {
@@ -36,7 +46,7 @@ export function dfsTree(tree = [], cb) {
                 let childrenList = item.children || [];
                 for (let j = 0; j < childrenList.length; j++) {
                     if (!childrenList[j].hasOwnProperty('level')) childrenList[j].level = item.level + 1
-                    queue.splice(index, 0, childrenList[j])
+                    queue.splice(index + j, 0, childrenList[j])
                 }
             }
         }
@@ -44,8 +54,10 @@ export function dfsTree(tree = [], cb) {
     return nodeList
 }
 
-
-// 获取父项选中状态 如果当前子节点全部选中则父项选中
+/**
+ * 获取父项选中状态 如果当前子节点全部选中则父项选中
+ * @param {*} childData 
+ */
 export const getParentCheckStatus = (childData = []) => {
     let status = 0
     let sum = 0
@@ -60,4 +72,94 @@ export const getParentCheckStatus = (childData = []) => {
         status = 2
     }
     return status
+}
+
+/**
+ * 移除可视数据节点
+ * @param {*} item 
+ * @param {*} viewData 
+ */
+export const removeViewDataNode = (item, viewData = []) => {
+    if (item) {
+        const index = viewData.findIndex(n => n.id === item.id)
+        const delData = viewData.splice(index, 1)
+        // 删除间接子集节点
+        for (let i = index; i < viewData.length; i++) {
+            if (viewData[i].level <= delData[0].level) {
+                break
+            }
+            viewData.splice(i, 1)
+            i--
+        }
+    }
+    return viewData
+}
+
+/**
+ * 移除映射数据节点
+ * @param {*} item 
+ * @param {*} mapData 
+ */
+export const removeMapDataNode = (item, mapData = {}) => {
+    if (item) {
+        let data
+        if (!item.parentId) {
+            data = mapData['0']['root']
+        } else {
+            data = mapData[item.level][item.parentId]
+        }
+        const index = data.findIndex(n => n.id === item.id)
+        const delNode = data.splice(index, 1)
+        // 如果当前data.length===0 需要设置父项hasLeaf
+        if (delNode && delNode[0].parentId && data.length === 0) {
+            const level = delNode[0].level - 1
+            let pData
+            if (level === 0) {
+                pData = mapData['0']
+            } else {
+                pData = mapData[level]
+            }
+            const keys = pData ? Object.keys(pData) : []
+            breakSign:
+            for (let i = 0; i < keys.length; i++) {
+                const data = pData[keys[i]]
+                for (let j = 0; j < data.length; j++) {
+                    if (delNode[0].parentId === data[j].id) {
+                        data[j].hasLeaf = false
+                        break breakSign
+                    }
+                }
+            }
+        }
+    }
+
+    return mapData
+}
+
+/**
+ * 删除后设置新的勾选状态
+ * @param {*} delItem 
+ * @param {*} mapData 
+ */
+export const setCheckStatusByDel = (delItem, mapData) => {
+    breakSign:
+    for (let i = delItem.level; i >= 0; i--) {
+        const keys = Object.keys(mapData[i])
+        for(let j = 0;j<keys.length;j++){
+            const data = mapData[i][keys[j]]
+            let hasCheck = false
+            for(let h = 0;h<data.length;j++){
+                if(data[h].checked === 1){
+                    hasCheck = true
+                }
+                if(data[h].id === delItem.parentId){
+                    if(data[h].checked === 1 || data[h].checked===0){
+                        break breakSign
+                    }else{
+
+                    }
+                }
+            }
+        }
+    }
 }
