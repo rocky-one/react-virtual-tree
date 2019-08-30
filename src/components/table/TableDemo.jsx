@@ -143,10 +143,8 @@ export default class TableDemo extends React.Component {
                 }
             },
             verticalScrollCb: (scrollTop) => {
-                this.updatePositionStyle();
             },
             horizontalScrollCb: (scrollLeft) => {
-                this.updatePositionStyle();
             },
             paintHeaderCellCb: (cell) => {
                 cell.backgroundColor = '#F8F8F8'
