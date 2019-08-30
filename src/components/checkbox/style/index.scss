@@ -4,6 +4,7 @@
     height: 14px;
     border: 1px solid #d9d9d9;
     border-radius: 2px;
+    cursor: pointer;
 }
 .r-h-checked {
     background-color: #1890ff; 
@@ -11,4 +12,8 @@
 
 .r-h-unchecked {
     background-color: #ffffff; 
+}
+
+.r-h-half-selected {
+    border: 1px solid #1890ff; 
 }

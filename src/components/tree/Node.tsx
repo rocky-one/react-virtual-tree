@@ -71,6 +71,7 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
         if (checkable) {
             return <Checkbox
                 checked={item.checked === 1}
+                halfSelected={item.checked === 2}
                 onChange={this.onChangeCheckbox} />
         }
     }

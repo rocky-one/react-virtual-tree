@@ -5,7 +5,11 @@ module.exports = ({ config }) => {
         loaders: ["style-loader", "css-loader", "sass-loader"],
         include: path.resolve(__dirname, '../src')
     });
-
+    config.module.rules.push({
+        test: /\.less$/,
+        loaders: ["style-loader", "css-loader", "less-loader"],
+        include: path.resolve(__dirname, '../src')
+    });
     config.module.rules.push({
         test: /\.(ts|tsx)$/,
         use: [

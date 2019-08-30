@@ -61,7 +61,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     onScroll = () => {
         this.setState({})
     }
-    onCheckLinkage = (item: NodeItem) =>{
+    onCheckLinkage = (item: NodeItem) => {
         this.handleTree.onCheckLinkage(item)
         this.setState({})
     }
@@ -103,11 +103,11 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                             onOpen={this.onOpen}
                             onClose={this.onClose}
                             nodeHeight={nodeHeight}
-                            checkable={checkable} 
+                            checkable={checkable}
                             linkage={linkage}
-                            onCheckLinkage={this.onCheckLinkage} 
+                            onCheckLinkage={this.onCheckLinkage}
                             onMouseEnter={onMouseEnter}
-                            onMouseLeave={onMouseLeave} 
+                            onMouseLeave={onMouseLeave}
                             renderMouseEnter={renderMouseEnter} />
                     </div>)
                 }

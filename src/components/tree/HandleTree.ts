@@ -5,6 +5,7 @@ import {
     getParentCheckStatus,
     removeViewDataNode,
     removeMapDataNode,
+    setCheckStatusByDel,
 } from './utils'
 
 export default class HandleTree implements HandleTreeInterface {
@@ -102,6 +103,7 @@ export default class HandleTree implements HandleTreeInterface {
     public removeNode = (item: NodeItem): void => {
         removeViewDataNode(item, this.viewData)
         removeMapDataNode(item, this.mapData)
+        setCheckStatusByDel(item, this.mapData)
     }
     public open = (parentItem: NodeItem): void => {
         parentItem.open = true

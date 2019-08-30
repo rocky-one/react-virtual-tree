@@ -4,6 +4,7 @@ import './style/index.scss'
 
 interface checkboxProps {
     checked: boolean,
+    halfSelected?: boolean,
     onChange: (status: boolean) => void
 }
 
@@ -17,6 +18,7 @@ function Checkbox(props: checkboxProps) {
         <span className={classNames('r-h-checkbox', {
             'r-h-checked': checked,
             'r-h-unchecked': !checked,
+            'r-h-half-selected': props.halfSelected
         })}
             onClick={() => {
                 let status = !checked

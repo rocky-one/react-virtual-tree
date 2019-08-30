@@ -142,24 +142,43 @@ export const removeMapDataNode = (item, mapData = {}) => {
  * @param {*} mapData 
  */
 export const setCheckStatusByDel = (delItem, mapData) => {
-    breakSign:
-    for (let i = delItem.level; i >= 0; i--) {
-        const keys = Object.keys(mapData[i])
-        for(let j = 0;j<keys.length;j++){
-            const data = mapData[i][keys[j]]
-            let hasCheck = false
-            for(let h = 0;h<data.length;j++){
-                if(data[h].checked === 1){
-                    hasCheck = true
-                }
-                if(data[h].id === delItem.parentId){
-                    if(data[h].checked === 1 || data[h].checked===0){
+    let curItem = delItem
+    let level = curItem.level
+    for (let i = level; i >= 0; i--) {
+        if(!curItem.parentId) break
+        const data = mapData[i][curItem.parentId]
+        let sum = 0
+        for (let h = 0; h < data.length; h++) {
+            if (data[h].checked === 1) {
+                sum++
+            }
+        }
+        // 找当前节点的父节点 改变选中状态
+        let parentItem
+        if (i > 0) {
+            const keys = Object.keys(mapData[i - 1])
+            breakSign:
+            for (let h = 0; h < keys.length; h++) {
+                const pData = mapData[i - 1][keys[h]]
+                for (let j = 0; j < pData.length; j++) {
+                    if (pData[j].id === curItem.parentId) {
+                        parentItem = pData[j]
+                        curItem = parentItem
                         break breakSign
-                    }else{
-
                     }
                 }
             }
         }
+        console.log(parentItem,'parentItem')
+        if (parentItem) {
+            if (sum === 0) {
+                parentItem.checked = 0
+            } else if (sum === data.length) {
+                parentItem.checked = 1
+            } else {
+                parentItem.checked = 2
+            }
+        }
+
     }
 }

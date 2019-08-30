@@ -11,7 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "classnames": "^2.2.6"
+    "classnames": "^2.2.6",
+    "moment": "^2.24.0"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
@@ -33,6 +34,8 @@
     "css-loader": "^3.2.0",
     "cssnano": "^4.1.10",
     "jest": "^24.9.0",
+    "less": "^3.10.3",
+    "less-loader": "^5.0.0",
     "node-sass": "^4.12.0",
     "postcss-cssnext": "^3.1.0",
     "postcss-nested": "^4.1.2",

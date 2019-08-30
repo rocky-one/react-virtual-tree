@@ -1,0 +1,144 @@
+
+## workbookTableNew 表格实例提供 ##
+
+<style>
+	table{
+    	border-collapse:collapse;
+		border-spacing:0;
+	}
+</style>
+<table >
+    <thead>
+        <tr>
+            <th>实例提供方法</th>
+            <th>说明</th>
+			<th>参数</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>setData</td>
+            <td>重置数据</td>
+			<td>setData({
+            headerData: [],
+            leftData: [],
+            tableData: []
+            })</td>
+        </tr>
+        <tr>
+            <td>setBodyData</td>
+            <td>重置body数据</td>
+			<td>setBodyData([])</td>
+        </tr>
+        <tr>
+            <td>setRowOpenStatus</td>
+            <td>设置行展开状态,默认false</td>
+			<td>setRowOpenStatus(true)</td>
+        </tr>
+        <tr>
+            <td>setColOpenStatus</td>
+            <td>设置列展开状态,默认false</td>
+			<td>setColOpenStatus(true)</td>
+        </tr>
+        <tr>
+            <td>setExpandArrowStatus</td>
+            <td>设置展开箭头显示状态,默认true</td>
+			<td>setExpandArrowStatus(false)</td>
+        </tr>
+        <tr>
+            <td>setValue</td>
+            <td>设置td的value</td>
+			<td>setValue(value, row, col)</td>
+        </tr>
+         <tr>
+            <td>setBodyCellAttr</td>
+            <td>设置td的属性</td>
+			<td>setBodyCellAttr(row, col, attr)</td>
+        </tr>
+ 		<tr>
+            <td>getSelectedCell</td>
+            <td>当前选中的td</td>
+			<td>无</td>
+        </tr>
+        <tr>
+            <td>getClickTitleCell</td>
+            <td>当前点击表头或者左侧的td</td>
+			<td>无</td>
+        </tr>
+        <tr>
+            <td>getSelectedRegion</td>
+            <td>获取选中区域的所有td </td>
+			<td>无</td>
+        </tr>
+        <tr>
+            <td>getSelectedRegionDimMems</td>
+            <td>获取选中区域的行列维 </td>
+        	<td>无</td>
+            </tr>
+        <tr>
+            <td>getEditCells</td>
+            <td>获取编辑过value值的td</td>
+			<td>无</td>
+        </tr>
+		<tr>
+            <td>getTabelAllData</td>
+            <td>获取所有表格数据</td>
+			<td>无</td>
+        </tr>
+		<tr>
+            <td>getTabelData</td>
+            <td>获取能看见的数据</td>
+			<td>无</td>
+        </tr>
+        <tr>
+            <td>getLeftAllData</td>
+            <td>获取所有数据</td>
+			<td>无</td>
+        </tr>
+		<tr>
+            <td>getLeftData</td>
+            <td>获取能看见的数据</td>
+			<td>无</td>
+        </tr>
+        <tr>
+            <td>getHeaderAllData</td>
+            <td>获取所有数据</td>
+			<td>无</td>
+        </tr>
+		<tr>
+            <td>getHeaderData</td>
+            <td>获取能看见的数据</td>
+			<td>无</td>
+        </tr>
+		<tr>
+            <td>getBoxInfo</td>
+            <td>表格盒子宽高信息</td>
+			<td>无</td>
+        </tr>
+        <tr>
+            <td>getScrollInfo</td>
+            <td>表格滚动条信息</td>
+			<td>无</td>
+        </tr>
+		<tr>
+            <td>handleLeftTdClick</td>
+            <td>表格左侧td点击事件回调</td>
+			<td>cell</td>
+        </tr>
+		<tr>
+            <td>handleHeaderThClick</td>
+            <td>表格头部th点击事件回调</td>
+			<td>cell</td>
+        </tr>
+        <tr>
+            <td>handleRightTdMouseUp</td>
+            <td>表格数据区域 鼠标up回调</td>
+			<td>无</td>
+        </tr>
+ 		<tr>
+            <td>destroy</td>
+            <td>销毁</td>
+			<td>无</td>
+        </tr>
+    </tbody>
+</table>

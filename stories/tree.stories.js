@@ -102,6 +102,6 @@ storiesOf('Tree', module)
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave} 
         renderMouseEnter={(item)=>{
-            return <span onClick={() => onDelete(item)}>删除</span>
+            return <span style={{cursor: 'pointer',marginLeft:'6px'}} onClick={() => onDelete(item)}>删除</span>
         }}/>)
 
