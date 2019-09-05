@@ -50,3 +50,8 @@ export interface TreeProps<T> extends BaseProps {
     height?: number,
     treeRef?: any,
 }
+
+export interface SearchReturn {
+    item?: NodeItem,
+    index: number,
+}

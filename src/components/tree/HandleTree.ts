@@ -1,4 +1,4 @@
-import { HandleTreeInterface, MapData, NodeItem } from './interface'
+import { HandleTreeInterface, MapData, NodeItem, SearchReturn } from './interface'
 import {
     bfTree,
     dfsTree,
@@ -165,5 +165,19 @@ export default class HandleTree implements HandleTreeInterface {
         //     })
         // }
     }
-
+    public search = (text: string, index: number = 0): SearchReturn => {
+        const list = this.viewData
+        let item: NodeItem, searchIndex = 0
+        for (let i = index; i < list.length; i++) {
+            if (list[i].name.indexOf('text') != -1) {
+                item = list[i]
+                searchIndex = i
+                break
+            }
+        }
+        return {
+            item: item,
+            index: searchIndex,
+        }
+    }
 }

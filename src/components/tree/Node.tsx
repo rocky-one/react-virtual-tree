@@ -114,6 +114,7 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
         } = this.props
 
         return <div
+            id={item.id}
             className="virtual-tree-node"
             style={{ height: `${nodeHeight}px` }}
             onMouseEnter={this.onMouseEnter}
