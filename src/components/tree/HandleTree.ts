@@ -169,7 +169,7 @@ export default class HandleTree implements HandleTreeInterface {
         const list = this.viewData
         let item: NodeItem, searchIndex = 0
         for (let i = index; i < list.length; i++) {
-            if (list[i].name.indexOf('text') != -1) {
+            if (list[i].name.indexOf(text) != -1) {
                 item = list[i]
                 searchIndex = i
                 break

@@ -15,6 +15,9 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             data: []
         }
     }
+    static defaultProps = {
+        nodeHeight: 30,
+    }
     handleTree: any
     treeRef: any
     componentDidMount() {
@@ -24,6 +27,19 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         this.setState({
             data: this.handleTree.getViewData()
         })
+    }
+    componentDidUpdate() {
+        // this.onSearchKeys()
+    }
+    onSearchKeys = (text: string) => {
+        const {
+            nodeHeight,
+        } = this.props
+        const res = this.handleTree.search(text)
+        if (res && res.item) {
+            const index = this.handleTree.getViewData().findIndex((item: NodeItem) => (item.id).toString() == (res.item.id).toString())
+            this.treeRef.scrollTo(0, nodeHeight * index);
+        }
     }
     onOpen = (item: NodeItem) => {
         const {

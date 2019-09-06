@@ -169,7 +169,6 @@ export const setCheckStatusByDel = (delItem, mapData) => {
                 }
             }
         }
-        console.log(parentItem,'parentItem')
         if (parentItem) {
             if (sum === 0) {
                 parentItem.checked = 0

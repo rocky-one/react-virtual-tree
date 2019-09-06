@@ -43,12 +43,16 @@ export interface NodeProps extends BaseProps {
     onCheckLinkage?: (item: NodeItem) => void,
 }
 
+interface SearchKeys {
+    id: string
+}
 export interface TreeProps<T> extends BaseProps {
     data: T[],
     loadData?: (item: NodeItem) => Promise<void>,
     width?: number,
     height?: number,
     treeRef?: any,
+    searchKeys?: Array<SearchKeys>,
 }
 
 export interface SearchReturn {
