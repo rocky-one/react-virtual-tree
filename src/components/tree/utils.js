@@ -62,7 +62,7 @@ export const getParentCheckStatus = (childData = []) => {
     let status = 0
     let sum = 0
     for (let i = 0; i < childData.length; i++) {
-        if (childData[i].checked) {
+        if (childData[i].checked === 1) {
             sum++
         }
     }
@@ -145,7 +145,7 @@ export const setCheckStatusByDel = (delItem, mapData) => {
     let curItem = delItem
     let level = curItem.level
     for (let i = level; i >= 0; i--) {
-        if(!curItem.parentId) break
+        if (!curItem.parentId) break
         const data = mapData[i][curItem.parentId]
         let sum = 0
         for (let h = 0; h < data.length; h++) {
