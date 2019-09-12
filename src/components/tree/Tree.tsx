@@ -17,6 +17,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     }
     static defaultProps = {
         nodeHeight: 30,
+        linkage: true
     }
     handleTree: any
     treeRef: any
@@ -44,6 +45,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     onOpen = (item: NodeItem) => {
         const {
             loadData,
+            checkable,
         } = this.props
 
         if (!item.requested) {
@@ -56,7 +58,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                 })
             }
         } else {
-            this.handleTree.open(item)
+            this.handleTree.open(item, checkable ? 'check' : null)
             this.setState({
                 data: this.handleTree.getViewData()
             })
@@ -81,6 +83,10 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         this.handleTree.onCheckLinkage(item)
         this.setState({})
     }
+    onChangeRadio = (item: NodeItem, status: boolean) => {
+        this.handleTree.onChangeRadio(item, status)
+        this.setState({})
+    }
     renderChild = () => {
         if (!this.treeRef) return null
         const {
@@ -89,10 +95,11 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         const {
             nodeHeight = 30,
             checkable,
-            linkage = true,
+            linkage,
             onMouseEnter,
             onMouseLeave,
             renderMouseEnter,
+            radio,
         } = this.props
 
         // 计算开始和结束数据的索引
@@ -115,16 +122,20 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             <div key="middle" style={{ height: `${middleHeight}px`, overflow: 'hidden' }}>
                 {
                     newData.map((item: NodeItem) => <div key={item.id} >
-                        <Node item={item}
+                        <Node
+                            item={item}
                             onOpen={this.onOpen}
                             onClose={this.onClose}
                             nodeHeight={nodeHeight}
                             checkable={checkable}
+                            radio={radio}
                             linkage={linkage}
                             onCheckLinkage={this.onCheckLinkage}
+                            onChangeRadio={this.onChangeRadio}
                             onMouseEnter={onMouseEnter}
                             onMouseLeave={onMouseLeave}
-                            renderMouseEnter={renderMouseEnter} />
+                            renderMouseEnter={renderMouseEnter}
+                            handleTree={this.handleTree} />
                     </div>)
                 }
             </div>,

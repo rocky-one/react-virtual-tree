@@ -105,18 +105,24 @@ export default class HandleTree implements HandleTreeInterface {
         removeMapDataNode(item, this.mapData)
         setCheckStatusByDel(item, this.mapData)
     }
-    public open = (parentItem: NodeItem): void => {
+    public open = (parentItem: NodeItem, checkType: string): void => {
         parentItem.open = true
         const showChild = this.getShowChildData(parentItem)
         const index = this.viewData.findIndex(item => item.id === parentItem.id)
         index > -1 && this.viewData.splice(index + 1, 0, ...showChild)
-        this.onCheckedChild(parentItem)
+        if (checkType === 'check') {
+            this.onCheckedChild(parentItem)
+        }
+        // else if(checkType==='radio'){
+
+        // }
     }
     public close = (parentItem: NodeItem): void => {
         parentItem.open = false
         const closeChild = this.getShowChildData(parentItem)
         const index = this.viewData.findIndex(item => item.parentId === parentItem.id)
         index > -1 && this.viewData.splice(index, closeChild.length)
+
     }
     // 获取同级
     private getSameLevelData = (item: NodeItem): Array<NodeItem> => {
@@ -158,12 +164,21 @@ export default class HandleTree implements HandleTreeInterface {
             }
         }
         this.onCheckedChild(item)
-        // // 向下
-        // if (item.hasLeaf) {
-        //     dfsTree(item.children, (n: NodeItem) => {
-        //         n.checked = item.checked
-        //     })
-        // }
+    }
+    // public onCheckUnLinkage = (item: NodeItem) => {
+    //     if (item.checked === 1) {
+    //         item.checked = 0
+    //     } else if(item.checked === 0){
+    //         item.checked = 1
+    //     }
+    //     return item
+    // }
+    public onChangeRadio = (item: NodeItem, status: boolean) => {
+        const radioItem = this.viewData.find(n => n.checked === 1)
+        if (radioItem) {
+            radioItem.checked = 0
+        }
+        item.checked = status ? 1 : 0
     }
     public search = (text: string, index: number = 0): SearchReturn => {
         const list = this.viewData

@@ -30,17 +30,21 @@ export interface TransformItem {
 interface BaseProps {
     onOpen?: (item: NodeItem) => void,
     onClose?: (item: NodeItem) => void,
-    onMouseEnter?:(item: NodeItem) => void,
-    onMouseLeave?:(item: NodeItem) => void,
-    renderMouseEnter?:(item: NodeItem) => React.ReactNode,
+    onMouseEnter?: (item: NodeItem) => void,
+    onMouseLeave?: (item: NodeItem) => void,
+    renderMouseEnter?: (item: NodeItem) => React.ReactNode,
     nodeHeight?: number,
-    checkable?: boolean,
+    checkable?: boolean, // 多选
+    radio?: boolean, // 单选
+    renderCheckable?: (item: NodeItem) => boolean,
+    renderRadio?: (item: NodeItem) => boolean,
     linkage?: boolean,
-    
 }
 export interface NodeProps extends BaseProps {
     item: NodeItem,
     onCheckLinkage?: (item: NodeItem) => void,
+    onChangeRadio?: (item: NodeItem, status: boolean) => void,
+    handleTree?: any,
 }
 
 interface SearchKeys {

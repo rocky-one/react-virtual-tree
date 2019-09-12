@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Checkbox from '../checkbox'
+import Radio from '../radio'
 import { NodeProps } from './interface'
 
 interface ArrowStyle {
@@ -66,13 +67,24 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
             this.setState({})
         }
     }
+    onChangeRadio = (status: boolean) => {
+        const {
+            item,
+            onChangeRadio,
+        } = this.props
+        onChangeRadio && onChangeRadio(item, status)
+    }
     renderCheckbox = () => {
-        const { checkable, item } = this.props
+        const { checkable, item, radio } = this.props
         if (checkable) {
             return <Checkbox
                 checked={item.checked === 1}
                 halfSelected={item.checked === 2}
                 onChange={this.onChangeCheckbox} />
+        } else if (radio) {
+            return <Radio
+                checked={item.checked === 1}
+                onChange={this.onChangeRadio} />
         }
     }
     onMouseEnter = () => {

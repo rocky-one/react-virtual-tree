@@ -76,11 +76,11 @@ function onOpen(item) {
 }
 
 function onMouseEnter(item) {
-    console.log(item, 'onMouseEnter')
+    //console.log(item, 'onMouseEnter')
 }
 
 function onMouseLeave(item) {
-    console.log(item, 'onMouseLeave')
+    //console.log(item, 'onMouseLeave')
 }
 let treeRef
 function onDelete(item) {
@@ -115,13 +115,15 @@ export default class Node extends React.Component {
                 width={200}
                 height={300}
                 nodeHeight={30}
-                checkable={true}
+                // checkable={true}
+                radio={true}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 renderMouseEnter={(item) => {
                     return <span style={{ cursor: 'pointer', marginLeft: '6px' }} onClick={() => onDelete(item)}>删除</span>
                 }}
-                searchKeys={this.state.searchKeys} />]
+                searchKeys={this.state.searchKeys} 
+                linkage={false} />]
     }
 }
 
