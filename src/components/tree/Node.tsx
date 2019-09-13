@@ -75,13 +75,37 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
         onChangeRadio && onChangeRadio(item, status)
     }
     renderCheckbox = () => {
-        const { checkable, item, radio } = this.props
+        const {
+            checkable,
+            item,
+            radio,
+            renderCheckable,
+            renderRadio,
+        } = this.props
         if (checkable) {
+            if (renderCheckable) {
+                const renderItem = renderCheckable(item)
+                if (typeof renderItem === 'boolean') {
+                    if (!renderItem) return null
+                    // 返回 react Node
+                } else if (renderItem != undefined) {
+                    return <span className="r-h-check-custom">{renderItem}</span>
+                }
+            }
             return <Checkbox
                 checked={item.checked === 1}
                 halfSelected={item.checked === 2}
                 onChange={this.onChangeCheckbox} />
         } else if (radio) {
+            if (renderRadio) {
+                const renderItem = renderRadio(item)
+                if (typeof renderItem === 'boolean') {
+                    if (!renderItem) return null
+                    // 返回 react Node
+                } else if (renderItem != undefined) {
+                    return <span className="r-h-check-custom">{renderItem}</span>
+                }
+            }
             return <Radio
                 checked={item.checked === 1}
                 onChange={this.onChangeRadio} />

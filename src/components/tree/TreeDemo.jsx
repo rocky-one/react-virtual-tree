@@ -115,14 +115,27 @@ export default class Node extends React.Component {
                 width={200}
                 height={300}
                 nodeHeight={30}
-                // checkable={true}
-                radio={true}
+                checkable={true}
+                // radio={true}
+                renderCheckable={(item) => {
+                    if(item.id==1){
+                        return false
+                    }
+                    if(item.id==2){
+                        return <div style={{color:'red'}}>*</div>
+                    }
+                }}
+                renderRadio={(item) => {
+                    if(item.id==1){
+                        return false
+                    }
+                }}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 renderMouseEnter={(item) => {
                     return <span style={{ cursor: 'pointer', marginLeft: '6px' }} onClick={() => onDelete(item)}>删除</span>
                 }}
-                searchKeys={this.state.searchKeys} 
+                searchKeys={this.state.searchKeys}
                 linkage={false} />]
     }
 }

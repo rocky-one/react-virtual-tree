@@ -100,6 +100,8 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             onMouseLeave,
             renderMouseEnter,
             radio,
+            renderCheckable,
+            renderRadio,
         } = this.props
 
         // 计算开始和结束数据的索引
@@ -128,7 +130,9 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                             onClose={this.onClose}
                             nodeHeight={nodeHeight}
                             checkable={checkable}
+                            renderCheckable={renderCheckable}
                             radio={radio}
+                            renderRadio={renderRadio}
                             linkage={linkage}
                             onCheckLinkage={this.onCheckLinkage}
                             onChangeRadio={this.onChangeRadio}
