@@ -46,6 +46,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         const {
             loadData,
             checkable,
+            linkage,
         } = this.props
 
         if (!item.requested) {
@@ -58,7 +59,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                 })
             }
         } else {
-            this.handleTree.open(item, checkable ? 'check' : null)
+            this.handleTree.open(item, checkable ? 'check' : null, linkage)
             this.setState({
                 data: this.handleTree.getViewData()
             })
@@ -123,8 +124,8 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             <div key="top" style={{ height: `${topHeight}px` }}></div>,
             <div key="middle" style={{ height: `${middleHeight}px`, overflow: 'hidden' }}>
                 {
-                    newData.map((item: NodeItem) => <div key={item.id} >
-                        <Node
+                    newData.map((item: NodeItem) => <Node
+                             key={item.id}
                             item={item}
                             onOpen={this.onOpen}
                             onClose={this.onClose}
@@ -139,8 +140,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                             onMouseEnter={onMouseEnter}
                             onMouseLeave={onMouseLeave}
                             renderMouseEnter={renderMouseEnter}
-                            handleTree={this.handleTree} />
-                    </div>)
+                            handleTree={this.handleTree} />)
                 }
             </div>,
             <div key="bottom" style={{ height: `${bottomHeight}px` }}></div>
@@ -152,7 +152,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             height,
         } = this.props
 
-        return <div className="list"
+        return <div className="r-h-tree"
             style={{
                 width: width ? `${width}px` : 'auto',
                 height: height ? `${height}px` : 'auto',

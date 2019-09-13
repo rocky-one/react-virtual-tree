@@ -105,12 +105,12 @@ export default class HandleTree implements HandleTreeInterface {
         removeMapDataNode(item, this.mapData)
         setCheckStatusByDel(item, this.mapData)
     }
-    public open = (parentItem: NodeItem, checkType: string): void => {
+    public open = (parentItem: NodeItem, checkType: string, linkage: boolean): void => {
         parentItem.open = true
         const showChild = this.getShowChildData(parentItem)
         const index = this.viewData.findIndex(item => item.id === parentItem.id)
         index > -1 && this.viewData.splice(index + 1, 0, ...showChild)
-        if (checkType === 'check') {
+        if (checkType === 'check' && linkage) {
             this.onCheckedChild(parentItem)
         }
         // else if(checkType==='radio'){

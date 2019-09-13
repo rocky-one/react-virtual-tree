@@ -83,10 +83,7 @@ function onMouseLeave(item) {
     //console.log(item, 'onMouseLeave')
 }
 let treeRef
-function onDelete(item) {
-    treeRef.handleTree.removeNode(item)
-    console.log(item, treeRef, 'onDelete')
-}
+
 export default class Node extends React.Component {
     constructor(props) {
         super(props)
@@ -100,6 +97,10 @@ export default class Node extends React.Component {
         // this.setState({
         //     searchKeys: [res.item.id]
         // })
+    }
+    onDelete(item) {
+        this.treeRef.handleTree.removeNode(item)
+        this.setState({})
     }
     render() {
         return [
@@ -133,7 +134,7 @@ export default class Node extends React.Component {
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 renderMouseEnter={(item) => {
-                    return <span style={{ cursor: 'pointer', marginLeft: '6px' }} onClick={() => onDelete(item)}>删除</span>
+                    return <span style={{ cursor: 'pointer', marginLeft: '6px' }} onClick={() => this.onDelete(item)}>删除</span>
                 }}
                 searchKeys={this.state.searchKeys}
                 linkage={false} />]

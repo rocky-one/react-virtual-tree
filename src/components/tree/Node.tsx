@@ -39,18 +39,14 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
 
         let style: ArrowStyle = {
             marginLeft: `${item.level * 10}px`,
-            cursor: 'pointer',
-            display: 'inline-block',
-            width: '12px',
-            textAlign: 'center',
         }
         if (item.hasLeaf) {
             if (!item.open) {
-                return <span style={style} onClick={this.onOpen} >+</span>
+                return <span className="r-h-tree-node-arrow" style={style} onClick={this.onOpen} >+</span>
             }
-            return <span style={style} onClick={this.onClose}>-</span>
+            return <span className="r-h-tree-node-arrow" style={style} onClick={this.onClose}>-</span>
         }
-        return <span style={style} ></span>
+        return <span className="r-h-tree-node-arrow" style={style} ></span>
     }
     onChangeCheckbox = (status: boolean) => {
         const {
@@ -150,14 +146,13 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
         } = this.props
 
         return <div
-            id={item.id}
-            className="virtual-tree-node"
+            className="r-h-tree-node"
             style={{ height: `${nodeHeight}px` }}
             onMouseEnter={this.onMouseEnter}
             onMouseLeave={this.onMouseLeave}>
             {this.renderArrow()}
             {this.renderCheckbox()}
-            <span>{item.name}</span>
+            <span className="r-h-tree-node-text">{item.name}</span>
             {this.renderMouseEnter()}
         </div>
     }
