@@ -1,15 +1,15 @@
 ## TREE ##
 
-#### tree组件说明 ####
+### tree组件说明 ###
 tree组件具有较高的性能，特别是较大的数据量时能保持渲染流畅。通过滚动加载，也就是只渲染可视区域内的节点，滚动时根据滚动的scrollTop和tree组件每个节点的高度来计算当前可视区域应该从哪条数据开始渲染。
 
-#### 实现原理
+### 实现原理
 1. 拉平嵌套的dom结构为list列表的形式
 2. 拉平tree数据结构
 3. 滚动时根据scrollTop和节点高度计算截取数据
 
-#### 原理分析
-1. 拉平嵌套的dom结构为list列表的形式
+### 原理分析
+#### 1 拉平嵌套的dom结构为list列表的形式
 常见的tree组件一般都是ul li然后递归的形式嵌套形成和tree数据结构一致的一棵树，但是这样的嵌套对应滚动加载处理很不方便。常见的滚动加载一般以list结构居多。结构转换如下:
 
 ```javascript
@@ -37,7 +37,7 @@ tree组件具有较高的性能，特别是较大的数据量时能保持渲染�
 </div>
 ```
 
-2. 拉平tree数据结构
+#### 2 拉平tree数据结构
 dom结构处理成list后，需要接受一个一维数组的来渲染，那么我们需要把树形结构的数据转换成一维数组的格式。
 正常的tree的数据结构一般如下:
 
@@ -136,24 +136,31 @@ dom结构处理成list后，需要接受一个一维数组的来渲染，那么�
 }
 ```
 
-3. 滚动时根据scrollTop和节点高度计算截取数据
+#### 3 滚动时根据scrollTop和节点高度计算截取数据
 
-(1) 根据scrollTop的值计算上方位置滚动出了多少条数据。总数据长度减去滚动出去的数据就是开始的位置的索引。
+##### 计算开始截取数据的索引startIndex：
 
-    比如list.length=100，scrollTop=60，nodeHeight=30，这里的nodeHeight可以通过props传递给组件不穿默认30px。
+ - 根据scrollTop的值计算上方位置滚动出了多少条数据。总数据长度减去滚动出去的数据就是开始的位置的索引。
 
-    计算截取数据开始的索引： const startIndex = Math.floor(scrollTop / nodeHeight)
+ - 比如list.length=100，scrollTop=60，nodeHeight=30，这里的nodeHeight可以通过props传递给组件不穿默认30px。
 
-(2) 有开始的索引还要有结束的索引，结束的索引就是startIndex加上当前tree可视区域的高度内能展示多少条数据。
+ - 计算截取数据开始的索引： const startIndex = Math.floor(scrollTop / nodeHeight)
 
-    比如可视区域的高度是100, viewHeight=100,nodeHeight=30
+##### 计算开始截取数据的索引startIndex：
 
-    计算可视区域内能放多少条数据: const viewDataLen = Math.ceil(height / nodeHeight)
+ - 有开始的索引还要有结束的索引，结束的索引就是startIndex加上当前tree可视区域的高度内能展示多少条数据。
 
-    结束的索引就可以计算出来了 const endIndex = startIndex+viewDataLen
+ - 比如可视区域的高度是100, viewHeight=100,nodeHeight=30
+ 
+ - 计算可视区域内能放多少条数据: const viewDataLen = Math.ceil(height / nodeHeight)
 
-(3) 开始和结束的索引都计算完毕，下面截取数据就ok了。
-const newlist = list.slice(startIndex, endIndex)
+ - 结束的索引就可以计算出来了 const endIndex = startIndex+viewDataLen
 
+##### 计算可视区域要展示的数据newlist：
+ 
+ - 开始和结束的索引都计算完毕，下面截取数据就ok了。const newlist = list.slice(startIndex, endIndex)
+
+
+------
 
 到此tree组件的基本原理已经介绍完毕，若有错误之处还请多多指教，组件还在不断完善中，后续会继续更新。代码源码请到https://github.com/rocky-one/react-high-performance-ui/blob/master/src/components/tree/Tree.tsx
