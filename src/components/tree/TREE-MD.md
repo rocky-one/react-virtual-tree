@@ -140,17 +140,17 @@ dom结构处理成list后，需要接受一个一维数组的来渲染，那么�
 
 (1) 根据scrollTop的值计算上方位置滚动出了多少条数据。总数据长度减去滚动出去的数据就是开始的位置的索引。
 
-比如list.length=100，scrollTop=60，nodeHeight=30，这里的nodeHeight可以通过props传递给组件不穿默认30px。
+    比如list.length=100，scrollTop=60，nodeHeight=30，这里的nodeHeight可以通过props传递给组件不穿默认30px。
 
-计算截取数据开始的索引： const startIndex = Math.floor(scrollTop / nodeHeight)
+    计算截取数据开始的索引： const startIndex = Math.floor(scrollTop / nodeHeight)
 
 (2) 有开始的索引还要有结束的索引，结束的索引就是startIndex加上当前tree可视区域的高度内能展示多少条数据。
 
-比如可视区域的高度是100, viewHeight=100,nodeHeight=30
+    比如可视区域的高度是100, viewHeight=100,nodeHeight=30
 
-计算可视区域内能放多少条数据: const viewDataLen = Math.ceil(height / nodeHeight)
+    计算可视区域内能放多少条数据: const viewDataLen = Math.ceil(height / nodeHeight)
 
-结束的索引就可以计算出来了 const endIndex = startIndex+viewDataLen
+    结束的索引就可以计算出来了 const endIndex = startIndex+viewDataLen
 
 (3) 开始和结束的索引都计算完毕，下面截取数据就ok了。
 const newlist = list.slice(startIndex, endIndex)
