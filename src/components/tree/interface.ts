@@ -39,6 +39,7 @@ interface BaseProps {
     renderCheckable?: (item: NodeItem) => boolean,
     renderRadio?: (item: NodeItem) => boolean,
     linkage?: boolean,
+    nodeClassName?: string,
 }
 export interface NodeProps extends BaseProps {
     item: NodeItem,

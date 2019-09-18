@@ -1,4 +1,5 @@
 import * as React from 'react'
+import classNames from 'classnames'
 import Checkbox from '../checkbox'
 import Radio from '../radio'
 import { NodeProps } from './interface'
@@ -15,6 +16,9 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
         this.state = {
             enter: false
         }
+    }
+    static defaultProps = {
+        nodeClassName: ''
     }
     onOpen = () => {
         const {
@@ -143,10 +147,11 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
         const {
             item,
             nodeHeight,
+            nodeClassName,
         } = this.props
 
         return <div
-            className="r-h-tree-node"
+            className={classNames("r-h-tree-node", nodeClassName)}
             style={{ height: `${nodeHeight}px` }}
             onMouseEnter={this.onMouseEnter}
             onMouseLeave={this.onMouseLeave}>
