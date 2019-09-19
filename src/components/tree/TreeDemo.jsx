@@ -137,7 +137,8 @@ export default class Node extends React.Component {
                     return <span style={{ cursor: 'pointer', marginLeft: '6px' }} onClick={() => this.onDelete(item)}>删除</span>
                 }}
                 searchKeys={this.state.searchKeys}
-                linkage={false} />]
+                linkage={false} 
+                draggable={true} />]
     }
 }
 

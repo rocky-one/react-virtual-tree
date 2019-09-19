@@ -17,10 +17,12 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     }
     static defaultProps = {
         nodeHeight: 30,
-        linkage: true
+        linkage: true,
+        draggable: false,
     }
     handleTree: any
     treeRef: any
+    treeMiddleRef: any
     componentDidMount() {
         this.handleTree = new HandleTree({
             data: this.props.data
@@ -31,6 +33,21 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     }
     componentDidUpdate() {
         // this.onSearchKeys()
+    }
+    onDragStart = (e) => {
+        console.log('onDragStart')
+    }
+    onDragEnter = (e) => {
+        console.log('onDragEnter')
+    }
+    onDragOver = (e) => {
+        console.log('onDragOver')
+    }
+    onDragLeave = (e) => {
+        console.log(e.target,e.target.getAttribute('data-map-key'),'onDragLeave')
+    }
+    onDragEnd = (e) => {
+        console.log('onDragEnd')
     }
     onSearchKeys = (text: string) => {
         const {
@@ -103,6 +120,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             radio,
             renderCheckable,
             renderRadio,
+            draggable,
         } = this.props
 
         // 计算开始和结束数据的索引
@@ -122,25 +140,32 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
 
         return [
             <div key="top" style={{ height: `${topHeight}px` }}></div>,
-            <div key="middle" style={{ height: `${middleHeight}px`, overflow: 'hidden' }}>
+            <div ref={r => this.treeMiddleRef = r} key="middle" style={{ height: `${middleHeight}px`, overflow: 'hidden' }}>
                 {
                     newData.map((item: NodeItem) => <Node
-                             key={item.id}
-                            item={item}
-                            onOpen={this.onOpen}
-                            onClose={this.onClose}
-                            nodeHeight={nodeHeight}
-                            checkable={checkable}
-                            renderCheckable={renderCheckable}
-                            radio={radio}
-                            renderRadio={renderRadio}
-                            linkage={linkage}
-                            onCheckLinkage={this.onCheckLinkage}
-                            onChangeRadio={this.onChangeRadio}
-                            onMouseEnter={onMouseEnter}
-                            onMouseLeave={onMouseLeave}
-                            renderMouseEnter={renderMouseEnter}
-                            handleTree={this.handleTree} />)
+                        key={item.id}
+                        item={item}
+                        onOpen={this.onOpen}
+                        onClose={this.onClose}
+                        nodeHeight={nodeHeight}
+                        checkable={checkable}
+                        renderCheckable={renderCheckable}
+                        radio={radio}
+                        renderRadio={renderRadio}
+                        linkage={linkage}
+                        onCheckLinkage={this.onCheckLinkage}
+                        onChangeRadio={this.onChangeRadio}
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
+                        renderMouseEnter={renderMouseEnter}
+                        handleTree={this.handleTree}
+                        draggable={draggable}
+                        onDragStart={this.onDragStart}
+                        onDragEnter={this.onDragEnter}
+                        onDragOver={this.onDragOver}
+                        onDragLeave={this.onDragLeave}
+                        onDragEnd={this.onDragEnd} 
+                        />)
                 }
             </div>,
             <div key="bottom" style={{ height: `${bottomHeight}px` }}></div>

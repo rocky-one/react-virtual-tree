@@ -17,8 +17,29 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
             enter: false
         }
     }
+    nodeRef: any
     static defaultProps = {
         nodeClassName: ''
+    }
+    componentDidMount() {
+        this.initDrag()
+    }
+    initDrag = () => {
+        const {
+            onDragStart,
+            onDragEnter,
+            onDragOver,
+            onDragLeave,
+            onDragEnd,
+        } = this.props
+
+        if (this.nodeRef) {
+            if (onDragStart) this.nodeRef.ondragstart = onDragStart
+            if (onDragEnter) this.nodeRef.ondragenter = onDragEnter
+            if (onDragOver) this.nodeRef.ondragover = onDragOver
+            if (onDragLeave) this.nodeRef.ondragleave = onDragLeave
+            if (onDragEnd) this.nodeRef.ondragend = onDragEnd
+        }
     }
     onOpen = () => {
         const {
@@ -148,16 +169,20 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
             item,
             nodeHeight,
             nodeClassName,
+            draggable,
         } = this.props
 
         return <div
+            data-map-key={`${item.level}-${item.parentId}-${item.id}`}
+            ref={r => this.nodeRef = r}
             className={classNames("r-h-tree-node", nodeClassName)}
             style={{ height: `${nodeHeight}px` }}
             onMouseEnter={this.onMouseEnter}
-            onMouseLeave={this.onMouseLeave}>
+            onMouseLeave={this.onMouseLeave}
+            draggable={draggable}>
             {this.renderArrow()}
             {this.renderCheckbox()}
-            <span className="r-h-tree-node-text">{item.name}</span>
+            <span title={item.name} className="r-h-tree-node-text">{item.name}</span>
             {this.renderMouseEnter()}
         </div>
     }

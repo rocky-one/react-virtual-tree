@@ -40,6 +40,12 @@ interface BaseProps {
     renderRadio?: (item: NodeItem) => boolean,
     linkage?: boolean,
     nodeClassName?: string,
+    draggable?: boolean,
+    onDragStart?: (item: NodeItem) => void
+    onDragOver?: (item: NodeItem) => void
+    onDragEnter?: (item: NodeItem) => void
+    onDragLeave?: (item: NodeItem) => void
+    onDragEnd?: (item: NodeItem) => void
 }
 export interface NodeProps extends BaseProps {
     item: NodeItem,

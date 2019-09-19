@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+	<title></title>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta name="spreadjs culture" content="zh-cn" />
+</head>
+<style>
+	body,
+	html {
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		padding: 0
+	}
+
+	.app {
+		width: 100%;
+		height: 100%;
+		border: 1px solid red;
+	}
+
+	.main {
+		display: flex;
+		justify-content: space-around;
+	}
+
+	.left {
+		width: 300px;
+		height: 420px;
+		margin-right: 10px;
+		border: 1px solid red;
+		text-align: center;
+		box-sizing: border-box;
+		padding: 1px;
+		overflow: auto;
+	}
+
+	.right {
+		width: 300px;
+		height: 500px;
+		border: 1px solid lightseagreen;
+		text-align: center;
+		box-sizing: border-box;
+		padding: 1px;
+	}
+	.left-txt{
+		height:169px;
+	}
+	.txt {
+		border: 1px solid gray;
+		margin: 1px;
+		padding: 5px;
+		cursor: move;
+	}
+</style>
+
+<body>
+	<div class="app">
+		<main class="main">
+			<div class="left" id="left">
+				<div class="txt-show">左边区域</div>
+				<div class="left-txt">
+						<div id='txt1' draggable="true" class="dragable txt txt1">可移动的文字一</div>
+						<div id='txt2' draggable="true" class="dragable txt txt2">可移动的文字二</div>
+						<div id='txt3' draggable="true" class="dragable txt txt3">可移动的文字三</div>
+						<div id='txt4' draggable="true" class="dragable txt txt4">可移动的文字四</div>
+						<div id='txt5' draggable="true" class="dragable txt txt5">可移动的文字五</div>
+				</div>
+				
+			</div>
+			<div class="right" id='right'>
+				<div class="txt-show">右边区域</div>
+			</div>
+		</main>
+	</div>　
+</body>
+
+</html>
+<script>
+	var canvas = document.createElement('canvas');
+		canvas.width = 100;
+		canvas.height = 20;
+		document.body.append(canvas);
+	let txtObj = document.getElementsByClassName('txt')
+	for (let i = 0; i < txtObj.length; i++) {
+		txtObj[i].ondragstart = handle_start
+		txtObj[i].ondrag = handle_drag
+		txtObj[i].ondragend = handle_end
+	}
+
+	function handle_start(e) {
+		e.dataTransfer.setData('Text', e.target.id)
+
+		var context = canvas.getContext('2d');
+
+		context.fillStyle = '#333333';
+		context.fillRect(0, 0, canvas.width, canvas.height);
+
+		context.fillStyle = '#999999';
+		context.font = 'bold 13px Arial';
+		context.fillText('DRAGGING...', -5, 15);
+		event.dataTransfer.setDragImage(canvas, 5, 9);
+	}
+	function handle_drag(e) {
+		console.log('handle_drag-拖动中')
+	}
+	function handle_end(e) {
+		console.log('handle_end-拖动结束')
+	}
+
+	let target = document.getElementById('right')
+	target.ondragenter = handle_enter
+	target.ondragover = handle_over
+	target.ondragleave = handle_leave
+	target.ondrop = handle_drop
+	let leftTarget = document.getElementById('left')
+	leftTarget.ondragenter = handle_enter
+	leftTarget.ondragover = handle_over
+	leftTarget.ondragleave = handle_leave
+	leftTarget.ondrop = handle_drop
+
+	function handle_enter(e) {
+		e.preventDefault()
+		console.log('handle_enter-进入目的地')
+	}
+	function handle_over(e) {
+		e.preventDefault()
+		let returnObj = e.dataTransfer.getData('Text')
+		console.log(returnObj + '-handle_over-在目的地范围内')
+	}
+	function handle_leave(e) {
+		e.preventDefault()
+		let returnObj = e.dataTransfer.getData('Text')
+		console.log(returnObj)
+		console.log('handle_leave-没有放下就离开目的地')
+	}
+	function handle_drop(e) {
+		e.stopPropagation();// 不再派发事件。解决Firefox浏览器，打开新窗口的问题。
+		e.preventDefault()
+		let returnObj = e.dataTransfer.getData('Text')
+		if (returnObj) {
+			e.target.appendChild(document.getElementById(returnObj))
+		}
+		console.log(returnObj + '-handle_drop-在目的地区释放')
+	}
+</script>
