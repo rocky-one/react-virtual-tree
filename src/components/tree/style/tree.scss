@@ -6,10 +6,17 @@
     -ms-user-select:none; 
     user-select:none;
 }
+.r-h-tree .r-h-tree-node:nth-child(even){
+    background: #fff
+}
+.r-h-tree .r-h-tree-node:nth-child(odd){
+    background: yellow
+}
 .r-h-tree-node{
     display: flex;
     align-items: center;
     padding-left: 4px;
+    position: relative;
 }
 .r-h-tree-node-arrow {
     display: inline-block;
@@ -31,4 +38,12 @@
 }
 .r-h-check-custom{
     display: inline-block;
+}
+.r-h-tree-enter-line {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: transparent;
+    // border: 1px solid #1890ff;
 }

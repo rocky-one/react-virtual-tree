@@ -5,14 +5,16 @@ import Node from './Node'
 import './style/tree.scss'
 
 interface TreeState<T> {
-    data: Array<NodeItem>
+    data: Array<NodeItem>;
+    dragYByNodeHeight: number;
 }
 
 export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>> {
     constructor(props: TreeProps<T>) {
         super(props)
         this.state = {
-            data: []
+            data: [],
+            dragYByNodeHeight: props.nodeHeight / 3,
         }
     }
     static defaultProps = {
@@ -23,9 +25,14 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     handleTree: any
     treeRef: any
     treeMiddleRef: any
+    dragEnterNodeRect: any
+    startEnterKey: string
+    dragEnterNode: any
+    dragLineNode: any
     componentDidMount() {
         this.handleTree = new HandleTree({
-            data: this.props.data
+            data: this.props.data,
+            nodeHeight: this.props.nodeHeight,
         })
         this.setState({
             data: this.handleTree.getViewData()
@@ -35,19 +42,61 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         // this.onSearchKeys()
     }
     onDragStart = (e) => {
+        // e.dataTransfer.dropEffect = "move"
         console.log('onDragStart')
+        e.stopPropagation()
     }
     onDragEnter = (e) => {
-        console.log('onDragEnter')
+        e.preventDefault()
+        if (this.dragLineNode) {
+            this.dragLineNode.style.border = 'none'
+        }
+        const dataMapKey = e.target.getAttribute('data-map-key')
+        if (dataMapKey) {
+            if (!this.startEnterKey || this.startEnterKey != dataMapKey) {
+                this.dragEnterNodeRect = e.target.getBoundingClientRect()
+                this.dragEnterNode = e.target
+                this.dragLineNode = e.target.firstChild
+                this.startEnterKey = dataMapKey
+            }
+        }
     }
     onDragOver = (e) => {
-        console.log('onDragOver')
+        e.preventDefault()
+        if (this.dragLineNode) {
+            const {
+                nodeHeight
+            } = this.props
+            const dy = this.state.dragYByNodeHeight
+            this.dragLineNode.style.border = 'none'
+            if (e.pageY >= this.dragEnterNodeRect.top && e.pageY <= this.dragEnterNodeRect.top + dy) {
+                // this.dragLineNode.style.borderTop = '1px solid green'
+                this.dragLineNode.style.top = '2px'
+                this.dragLineNode.style.borderTop = '1px solid red'
+            } else if (e.pageY > this.dragEnterNodeRect.top + dy && e.pageY < this.dragEnterNodeRect.bottom - dy) {
+                // this.dragLineNode.style.border = '1px solid red'
+                this.dragLineNode.style.top = '2px'
+                this.dragLineNode.style.height = `${nodeHeight - 5}px`
+                this.dragLineNode.style.border = '1px solid #1890ff'
+            } else if (e.pageY > this.dragEnterNodeRect.bottom - dy && e.pageY <= this.dragEnterNodeRect.bottom) {
+                // this.dragLineNode.style.borderBottom = '1px solid red'
+                this.dragLineNode.style.top = `${nodeHeight - 4}px`
+                this.dragLineNode.style.borderTop = '1px solid #000'
+            }
+        }
     }
     onDragLeave = (e) => {
-        console.log(e.target,e.target.getAttribute('data-map-key'),'onDragLeave')
+        e.preventDefault()
+        e.stopPropagation()
+        const dataMapKey = e.target.getAttribute('data-map-key')
+        // console.log(e.target,dataMapKey,this.startEnterKey,'onDragLeave')
+        this.dragLineNode.style.border = 'none'
+        return false
     }
     onDragEnd = (e) => {
         console.log('onDragEnd')
+        this.dragLineNode.style.border = 'none'
+        this.dragLineNode.style.height = 'none'
     }
     onSearchKeys = (text: string) => {
         const {
@@ -164,8 +213,8 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                         onDragEnter={this.onDragEnter}
                         onDragOver={this.onDragOver}
                         onDragLeave={this.onDragLeave}
-                        onDragEnd={this.onDragEnd} 
-                        />)
+                        onDragEnd={this.onDragEnd}
+                    />)
                 }
             </div>,
             <div key="bottom" style={{ height: `${bottomHeight}px` }}></div>

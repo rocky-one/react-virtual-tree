@@ -1,7 +1,10 @@
 export interface HandleTreeInterface {
     //transData:(data: any[]) => void; 
 }
-
+export interface HandleTreeOption {
+    data: any;
+    nodeHeight: number;
+}
 export interface NodeItem {
     title: string;
     id: string;

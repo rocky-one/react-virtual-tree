@@ -1,4 +1,4 @@
-import { HandleTreeInterface, MapData, NodeItem, SearchReturn } from './interface'
+import { HandleTreeInterface, HandleTreeOption, MapData, NodeItem, SearchReturn } from './interface'
 import {
     bfTree,
     dfsTree,
@@ -9,12 +9,16 @@ import {
 } from './utils'
 
 export default class HandleTree implements HandleTreeInterface {
-    constructor(option: { data: any; }) {
+    constructor(option: HandleTreeOption) {
+        this._attrs = {
+            nodeHeight: option.nodeHeight
+        }
         this.mapDatas(option.data)
         this.initViewData()
         console.log(this.mapData, 'mapData')
         console.log(this.viewData, 'viewData')
     }
+    private _attrs = {}
     private viewData: Array<NodeItem> = []
     public getViewData = () => this.viewData
     private mapData: MapData = {}

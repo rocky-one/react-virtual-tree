@@ -8,16 +8,24 @@ interface ArrowStyle {
     [propName: string]: any
 }
 interface NodeState {
-    enter: boolean,
+    enter: boolean;
+    dragYByNodeHeight: number;
+    dragLinePosition: string
 }
 export default class Node extends React.Component<NodeProps, NodeState>  {
     constructor(props: NodeProps) {
         super(props)
         this.state = {
-            enter: false
+            enter: false,
+            dragYByNodeHeight: props.nodeHeight / 3,
+            dragLinePosition: 'none',
         }
     }
     nodeRef: any
+    dragEnterNodeRect: any
+    startEnterKey: string
+    dragEnterNode: any
+    prePos: string = 'none'
     static defaultProps = {
         nodeClassName: ''
     }
@@ -39,7 +47,115 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
             if (onDragOver) this.nodeRef.ondragover = onDragOver
             if (onDragLeave) this.nodeRef.ondragleave = onDragLeave
             if (onDragEnd) this.nodeRef.ondragend = onDragEnd
+
+            this.dragEnterNodeRect = this.nodeRef.getBoundingClientRect()
+
         }
+    }
+    onDragEnter = (e) => {
+        const {
+            onDragEnter,
+        } = this.props
+        e.preventDefault()
+        this.dragEnterNodeRect = this.nodeRef.getBoundingClientRect()
+        //if (this.dragEnterNode) {
+        // this.dragEnterNode.style.border = 'none'
+        //}
+        // const dataMapKey = e.target.getAttribute('data-map-key')
+        // if (dataMapKey) {
+        //     if (!this.startEnterKey || this.startEnterKey != dataMapKey) {
+        //         this.dragEnterNodeRect = e.target.getBoundingClientRect()
+        //         // this.dragEnterNode = e.target
+        //         this.startEnterKey = dataMapKey
+        //     }
+        // }
+        // onDragEnter(e)
+    }
+    onDragOver = (e) => {
+        const {
+            onDragOver,
+            nodeHeight,
+        } = this.props
+        //if (this.dragEnterNode) {
+        const dy = this.state.dragYByNodeHeight
+        this.dragEnterNode.style.border = 'none'
+        this.dragEnterNode.style.height = 0
+        if (e.pageY >= this.dragEnterNodeRect.top && e.pageY <= this.dragEnterNodeRect.top + dy) {
+            //this.dragEnterNode.style.borderTop = '1px solid green'
+            this.dragEnterNode.style.top = '2px'
+            this.dragEnterNode.style.borderTop = '1px solid red'
+            // this.state.dragLinePosition != 'top' && this.setState({
+            //     dragLinePosition: 'top'
+            // })
+        } else if (e.pageY > this.dragEnterNodeRect.top + dy && e.pageY < this.dragEnterNodeRect.bottom - dy) {
+            //this.dragEnterNode.style.border = '1px solid red'
+
+            this.dragEnterNode.style.top = '2px'
+            this.dragEnterNode.style.height = `${nodeHeight - 4}px`
+            this.dragEnterNode.style.border = '1px solid #1890ff'
+            // this.state.dragLinePosition != 'middle' && this.setState({
+            //     dragLinePosition: 'middle'
+            // })
+        } else if (e.pageY > this.dragEnterNodeRect.bottom - dy && e.pageY <= this.dragEnterNodeRect.bottom) {
+            //this.dragEnterNode.style.borderBottom = '1px solid red'
+            this.dragEnterNode.style.top = `${nodeHeight - 2}px`
+            this.dragEnterNode.style.borderTop = '1px solid #000'
+            // this.setState({
+            //     dragLinePosition: 'bottom'
+            // })
+        }
+        //}
+        // onDragOver(e)
+    }
+    onDragLeave = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        this.dragEnterNode.style.border = 'none'
+        // this.dragEnterNode.style.height = 0
+        // this.setState({
+        //     dragLinePosition: 'none'
+        // })
+    }
+    onDragEnd = (e) => {
+        this.dragEnterNode.style.border = 'none'
+        this.dragEnterNode.style.height = 'none'
+        console.log(this.dragEnterNode, 'onDragEnd')
+
+        // this.setState({
+        //     dragLinePosition: 'none'
+        // })
+    }
+    renderDragEnterLine = () => {
+        const {
+            draggable,
+            nodeHeight,
+        } = this.props
+        const {
+            dragLinePosition
+        } = this.state
+        if (draggable) {
+            // const styles = {
+            //     top: 'none',
+            //     bottom: 'none',
+            //     height: '1px',
+            //     border: 'none',
+            //     borderTop: 'none',
+            // }
+            // if (dragLinePosition === 'top') {
+            //     styles.top = '2px'
+            //     styles.borderTop = '1px solid red'
+            // } else if (dragLinePosition === 'middle') {
+            //     styles.top = '2px'
+            //     styles.height = `${nodeHeight - 2}px`
+            //     styles.border = '1px solid #1890ff'
+            // } else if (dragLinePosition === 'bottom') {
+            //     styles.top = `${nodeHeight - 2}px`
+            //     styles.borderTop = '1px solid #000'
+            // }
+
+            return <div ref={r => this.dragEnterNode = r} className="r-h-tree-enter-line"></div>
+        }
+        return null
     }
     onOpen = () => {
         const {
@@ -164,6 +280,7 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
         }
         return null
     }
+
     render() {
         const {
             item,
@@ -180,6 +297,7 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
             onMouseEnter={this.onMouseEnter}
             onMouseLeave={this.onMouseLeave}
             draggable={draggable}>
+            {this.renderDragEnterLine()}
             {this.renderArrow()}
             {this.renderCheckbox()}
             <span title={item.name} className="r-h-tree-node-text">{item.name}</span>
