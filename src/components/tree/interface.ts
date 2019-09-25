@@ -55,6 +55,7 @@ export interface NodeProps extends BaseProps {
     onCheckLinkage?: (item: NodeItem) => void,
     onChangeRadio?: (item: NodeItem, status: boolean) => void,
     handleTree?: any,
+    index: number,
 }
 
 interface SearchKeys {

@@ -26,9 +26,12 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     treeRef: any
     treeMiddleRef: any
     dragEnterNodeRect: any
-    startEnterKey: string
+    dragMapKey: string
+    dragItemIndex: number
+    dragEnterMapKey: string
     dragEnterNode: any
     dragLineNode: any
+    dragMovePosition: string
     componentDidMount() {
         this.handleTree = new HandleTree({
             data: this.props.data,
@@ -43,6 +46,8 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
     }
     onDragStart = (e) => {
         // e.dataTransfer.dropEffect = "move"
+        this.dragMapKey = e.target.getAttribute('data-map-key')
+        this.dragItemIndex = Number(e.target.getAttribute('data-index'))
         console.log('onDragStart')
         e.stopPropagation()
     }
@@ -53,11 +58,11 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         }
         const dataMapKey = e.target.getAttribute('data-map-key')
         if (dataMapKey) {
-            if (!this.startEnterKey || this.startEnterKey != dataMapKey) {
+            if (!this.dragEnterMapKey || this.dragEnterMapKey != dataMapKey) {
                 this.dragEnterNodeRect = e.target.getBoundingClientRect()
                 this.dragEnterNode = e.target
                 this.dragLineNode = e.target.firstChild
-                this.startEnterKey = dataMapKey
+                this.dragEnterMapKey = dataMapKey
             }
         }
     }
@@ -69,34 +74,115 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             } = this.props
             const dy = this.state.dragYByNodeHeight
             this.dragLineNode.style.border = 'none'
+            this.dragMovePosition = ''
+            // 上中下三种情况
             if (e.pageY >= this.dragEnterNodeRect.top && e.pageY <= this.dragEnterNodeRect.top + dy) {
-                // this.dragLineNode.style.borderTop = '1px solid green'
                 this.dragLineNode.style.top = '2px'
-                this.dragLineNode.style.borderTop = '1px solid red'
+                this.dragLineNode.style.borderTop = '1px dashed #1890ff'
+                this.dragMovePosition = 'top'
             } else if (e.pageY > this.dragEnterNodeRect.top + dy && e.pageY < this.dragEnterNodeRect.bottom - dy) {
-                // this.dragLineNode.style.border = '1px solid red'
                 this.dragLineNode.style.top = '2px'
                 this.dragLineNode.style.height = `${nodeHeight - 5}px`
-                this.dragLineNode.style.border = '1px solid #1890ff'
+                this.dragLineNode.style.border = '1px dashed #1890ff'
+                this.dragMovePosition = 'middle'
             } else if (e.pageY > this.dragEnterNodeRect.bottom - dy && e.pageY <= this.dragEnterNodeRect.bottom) {
-                // this.dragLineNode.style.borderBottom = '1px solid red'
                 this.dragLineNode.style.top = `${nodeHeight - 4}px`
-                this.dragLineNode.style.borderTop = '1px solid #000'
+                this.dragLineNode.style.borderTop = '1px dashed #1890ff'
+                this.dragMovePosition = 'bottom'
             }
         }
     }
     onDragLeave = (e) => {
         e.preventDefault()
         e.stopPropagation()
-        const dataMapKey = e.target.getAttribute('data-map-key')
-        // console.log(e.target,dataMapKey,this.startEnterKey,'onDragLeave')
         this.dragLineNode.style.border = 'none'
         return false
     }
     onDragEnd = (e) => {
-        console.log('onDragEnd')
+        console.log(this.dragEnterMapKey, this.dragLineNode,'onDragEnd')
+        if (!this.dragEnterMapKey) return
         this.dragLineNode.style.border = 'none'
-        this.dragLineNode.style.height = 'none'
+        this.dragLineNode.style.height = 0
+        this.getParentItemByMapKey()
+        this.dragMovePosition = ''
+        this.setState({})
+    }
+    getParentItemByMapKey = () => {
+        if (!this.dragEnterMapKey) return
+        // 先删除原来数据
+        let dragKeys = this.dragMapKey.split('-')
+        let dragParent = this.handleTree.getItemParentInMapData({
+            id: dragKeys[2],
+            parentId: dragKeys[1],
+            level: Number(dragKeys[0])
+        })
+        let dragSiblingsData
+        if (dragParent) {
+            dragSiblingsData = this.handleTree.getMapData()[dragParent.level + 1][dragParent.id]
+        } else {
+            dragSiblingsData = this.handleTree.getMapData()[0]['root']
+        }
+        let dragItemIndex = this.handleTree.getItemIndexInSiblings({
+            id: dragKeys[2],
+            parentId: dragKeys[1],
+            level: Number(dragKeys[0])
+        }, dragSiblingsData)
+
+        let delData = dragSiblingsData.splice(dragItemIndex, 1)
+        let listChild = delData
+        if (dragParent) {
+            listChild.push(...this.handleTree.getShowChildData(delData[0], false))
+        }
+        this.handleTree.getViewData().splice(this.dragItemIndex, listChild.length)
+
+        // 再插入到tree和list 注意子节点也要一起插入 [...this.handleTree.getItemById(dragKeys[2],dragKeys[0])]
+        let keys = this.dragEnterMapKey.split('-')
+        let parent
+        if (this.dragMovePosition === 'middle') {
+            parent = this.handleTree.getItemById(keys[2], keys[0])
+        } else {
+            parent = this.handleTree.getItemParentInMapData({
+                id: keys[2],
+                parentId: keys[1],
+                level: Number(keys[0])
+            })
+        }
+        let siblingsData //= parent ? parent.children : this.handleTree.getMapData()[0]['root']
+        let mapDataIndex
+        let viewDataindex
+        if (parent) {
+            const p = this.handleTree.getMapData()[parent.level + 1]
+            if (!p) {
+                this.handleTree.getMapData()[parent.level + 1] = {}
+            }
+            if (!this.handleTree.getMapData()[parent.level + 1][parent.id]) {
+                this.handleTree.getMapData()[parent.level + 1][parent.id] = {
+                    [parent.id]: []
+                }
+            }
+            siblingsData = this.handleTree.getMapData()[parent.level + 1][parent.id]
+        } else {
+            siblingsData = this.handleTree.getMapData()[0]['root']
+        }
+
+        viewDataindex = this.handleTree.getViewData().findIndex(v => v.id === keys[2])
+        if (this.dragMovePosition !== 'middle') {
+            mapDataIndex = this.handleTree.getItemIndexInSiblings({
+                id: keys[2],
+                parentId: keys[1],
+                level: Number(keys[0])
+            }, siblingsData)
+
+        } else {
+            mapDataIndex = siblingsData.length
+        }
+        if (this.dragMovePosition == 'top') {
+            viewDataindex = viewDataindex>0 ?viewDataindex-= 1 : viewDataindex
+            mapDataIndex = mapDataIndex>0 ?mapDataIndex-= 1 : mapDataIndex
+        }
+        console.log(parent, mapDataIndex)
+        this.handleTree.insertChild(parent, delData, mapDataIndex, viewDataindex)
+
     }
     onSearchKeys = (text: string) => {
         const {
@@ -114,7 +200,6 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             checkable,
             linkage,
         } = this.props
-
         if (!item.requested) {
             if (loadData && typeof loadData === 'function') {
                 loadData(item).then(child => {
@@ -191,8 +276,9 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             <div key="top" style={{ height: `${topHeight}px` }}></div>,
             <div ref={r => this.treeMiddleRef = r} key="middle" style={{ height: `${middleHeight}px`, overflow: 'hidden' }}>
                 {
-                    newData.map((item: NodeItem) => <Node
+                    newData.map((item: NodeItem, i) => <Node
                         key={item.id}
+                        index={startIndex + i}
                         item={item}
                         onOpen={this.onOpen}
                         onClose={this.onClose}

@@ -287,10 +287,12 @@ export default class Node extends React.Component<NodeProps, NodeState>  {
             nodeHeight,
             nodeClassName,
             draggable,
+            index,
         } = this.props
 
         return <div
             data-map-key={`${item.level}-${item.parentId}-${item.id}`}
+            data-index={index}
             ref={r => this.nodeRef = r}
             className={classNames("r-h-tree-node", nodeClassName)}
             style={{ height: `${nodeHeight}px` }}

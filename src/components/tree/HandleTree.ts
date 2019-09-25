@@ -22,17 +22,19 @@ export default class HandleTree implements HandleTreeInterface {
     private viewData: Array<NodeItem> = []
     public getViewData = () => this.viewData
     private mapData: MapData = {}
-
+    public getMapData = () => this.mapData
     // 获取要显示的子节点 注意可能跨级显示
-    private getShowChildData = (item: NodeItem) => {
+    // autoOpenLevel1 是否自动展开当前节点的第一层  
+    public getShowChildData = (item: NodeItem, autoOpenLevel1: boolean = true) => {
         const mapData = this.mapData[item.level + 1][item.id]
         const child: Array<NodeItem> = []
         dfsTree(mapData, (c: NodeItem) => {
             if (item.level + 1 == c.level) {
-                child.push(c)
+                autoOpenLevel1 && child.push(c)
                 if (!c.open) return false
             } else {
                 child.push(c)
+                if (!c.open) return false
             }
         })
         return child
@@ -72,19 +74,32 @@ export default class HandleTree implements HandleTreeInterface {
     private initChildData = (parentItem: NodeItem, child: Array<NodeItem> = []): Array<NodeItem> => {
         return child.map(item => ({
             ...item,
-            level: parentItem.level + 1
+            level: parentItem.level + 1,
+            parentId: parentItem.id,
         }))
     }
-    private insertChildToViewData = (parentItem: NodeItem, child: Array<NodeItem> = []): void => {
-        const index = this.viewData.findIndex(item => item.id === parentItem.id)
-        index > -1 && this.viewData.splice(index + 1, 0, ...child)
+    private insertChildToViewData = (parentItem: NodeItem, child: Array<NodeItem> = [], index?: number): void => {
+        index = index >= 0 ? index : this.viewData.findIndex(item => item.id === parentItem.id)
+        const list: Array<NodeItem> = []
+        dfsTree(child, (c: NodeItem) => {
+            list.push(c)
+            if (!c.open) return false
+        })
+        index > -1 && this.viewData.splice(index + 1, 0, ...list)
     }
-    private insertChildToMapData = (parentItem: NodeItem, child: Array<NodeItem> = []): void => {
+    private insertChildToMapData = (parentItem: NodeItem, child: Array<NodeItem> = [], index?: number): void => {
         const childMap = this.mapData[parentItem.level + 1]
         if (!childMap) {
             this.mapData[parentItem.level + 1] = {}
         }
-        this.mapData[parentItem.level + 1][parentItem.id] = child
+        if (index >= 0) {
+            if (!this.mapData[parentItem.level + 1][parentItem.id]) {
+                this.mapData[parentItem.level + 1][parentItem.id] = []
+            }
+            this.mapData[parentItem.level + 1][parentItem.id].splice(index, 0, ...child)
+        } else {
+            this.mapData[parentItem.level + 1][parentItem.id] = child
+        }
     }
     // 销毁
     public destory = (): void => {
@@ -93,14 +108,14 @@ export default class HandleTree implements HandleTreeInterface {
     }
     // 插入子节点到 当前的节点下
     // 1 插入到viewData 2 插入到映射mapData
-    public insertChild = (parentItem: NodeItem, child: Array<NodeItem> = []): void => {
+    public insertChild = (parentItem: NodeItem, child: Array<NodeItem> = [], mapDataindex?: number, viewDataindex?: number): void => {
         parentItem.open = true
         parentItem.requested = true
         parentItem.hasLeaf = true
         const newChild = this.initChildData(parentItem, child)
         parentItem.children = newChild
-        this.insertChildToViewData(parentItem, newChild)
-        this.insertChildToMapData(parentItem, newChild)
+        this.insertChildToViewData(parentItem, newChild, viewDataindex)
+        this.insertChildToMapData(parentItem, newChild, mapDataindex)
         this.onCheckedChild(parentItem)
     }
     // 移除节点
@@ -127,6 +142,18 @@ export default class HandleTree implements HandleTreeInterface {
         const index = this.viewData.findIndex(item => item.parentId === parentItem.id)
         index > -1 && this.viewData.splice(index, closeChild.length)
 
+    }
+    private setInsertChildAttrs = (parentItem: NodeItem = null, child: Array<NodeItem> = []) => {
+        let parentId = null, level = 0
+        if (parentItem) {
+            parentId = parentItem.parentId
+            level = parentItem.level + 1
+        }
+        return child.map(c => {
+            c.parentId = parentId
+            c.level = level
+            return c
+        })
     }
     // 获取同级
     private getSameLevelData = (item: NodeItem): Array<NodeItem> => {
@@ -198,5 +225,52 @@ export default class HandleTree implements HandleTreeInterface {
             item: item,
             index: searchIndex,
         }
+    }
+    public getItemParentInMapData = (item: NodeItem): any => {
+        let data = this.getMapData()
+        let parentData = {}
+        let parentLevel = Number(item.level) - 1
+        let parent = null
+        if (parentLevel > -1) {
+            parentData = data[parentLevel]
+            let dataKeys = Object.keys(parentData)
+            breakSign:
+            for (let i = 0; i < dataKeys.length; i++) {
+                const d = parentData[dataKeys[i]] || []
+                
+                for (let j = 0; j < d.length; j++) {
+                    if (d[j].id === item.parentId) {
+                        parent = d[j]
+                        break breakSign
+                    }
+                }
+            }
+        }
+
+        return parent
+    }
+    public getItemIndexInSiblings = (item: NodeItem, siblings: Array<NodeItem> = []): number => {
+        for (let i = 0; i < siblings.length; i++) {
+            if (siblings[i].id === item.id) {
+                return i
+            }
+        }
+        return siblings.length
+    }
+    public getItemById = (id: string, level: number): NodeItem => {
+        let data = this.getMapData()[level]
+        let dataKeys = Object.keys(data)
+        let item: NodeItem
+        breakSign:
+        for (let i = 0; i < dataKeys.length; i++) {
+            const d = data[dataKeys[i]] || []
+            for (let j = 0; j < d.length; j++) {
+                if (d[j].id === id) {
+                    item = d[j]
+                    break breakSign
+                }
+            }
+        }
+        return item
     }
 }

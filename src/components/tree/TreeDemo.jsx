@@ -22,7 +22,13 @@ let data = [{
                 {
                     name: '1-1-2',
                     id: '1.1.2',
-                    parentId: '1.2'
+                    parentId: '1.2',
+                    hasLeaf: true,
+                    children: [{
+                        name: '1-1-2_1',
+                        id: '1.1.2.1',
+                        parentId: '1.1.2',
+                    }],
                 },
                 {
                     name: '1-1-3',
@@ -67,7 +73,7 @@ function loadData() {
                 id: '1.1.1',
                 parentId: '1.1',
             }])
-        }, 1000)
+        }, 500)
     })
 }
 
@@ -103,11 +109,12 @@ export default class Node extends React.Component {
         this.setState({})
     }
     render() {
-        return [
+        return <div style={{ marginLeft: '180px' }} >
+
             <div>
                 <input ref={r => this.inputRef = r} />
                 <button onClick={this.onSearch}>搜索</button>
-            </div>,
+            </div>
             <Tree
                 ref={r => this.treeRef = r}
                 data={data}
@@ -119,15 +126,15 @@ export default class Node extends React.Component {
                 checkable={true}
                 // radio={true}
                 renderCheckable={(item) => {
-                    if(item.id==1){
+                    if (item.id == 1) {
                         return false
                     }
-                    if(item.id==2){
-                        return <div style={{color:'red'}}>*</div>
+                    if (item.id == 2) {
+                        return <div style={{ color: 'red' }}>*</div>
                     }
                 }}
                 renderRadio={(item) => {
-                    if(item.id==1){
+                    if (item.id == 1) {
                         return false
                     }
                 }}
@@ -137,8 +144,10 @@ export default class Node extends React.Component {
                     return <span style={{ cursor: 'pointer', marginLeft: '6px' }} onClick={() => this.onDelete(item)}>删除</span>
                 }}
                 searchKeys={this.state.searchKeys}
-                linkage={false} 
-                draggable={true} />]
+                linkage={false}
+                draggable={true} />
+        </div>
+
     }
 }
 
