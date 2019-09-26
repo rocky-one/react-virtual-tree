@@ -6,7 +6,7 @@
 export function bfTree(tree = [], cb) {
     let queue = []
     for (let i = 0; i < tree.length; i++) {
-        tree[i].level = 0
+        if (!tree[i].hasOwnProperty('level')) tree[i].level = 0
         queue.push(tree[i])
     }
     while (queue.length != 0) {
@@ -110,6 +110,18 @@ export const removeMapDataNode = (item, mapData = {}) => {
         }
         const index = data.findIndex(n => n.id === item.id)
         const delNode = data.splice(index, 1)
+
+        const itemParent = getItemParentInMapData(item, mapData)
+        const child = itemParent.children || []
+        const pindex = child.findIndex(n => n.id === item.id)
+        child.splice(pindex, 1)
+        // 如果当前节点有子节点 需要删除映射数据
+        if(delNode[0].children && delNode[0].children.length){
+            bfTree(delNode,(item)=>{
+                if(item.children&& item.children.length)
+                    mapData[item.level+1][item.id] = null
+            })
+        }
         // 如果当前data.length===0 需要设置父项hasLeaf
         if (delNode && delNode[0].parentId && data.length === 0) {
             const level = delNode[0].level - 1
@@ -180,4 +192,25 @@ export const setCheckStatusByDel = (delItem, mapData) => {
         }
 
     }
+}
+
+export const getItemParentInMapData = (item, mapData) => {
+    let parentData = {}
+    let parentLevel = Number(item.level) - 1
+    let parent = null
+    if (parentLevel > -1) {
+        parentData = mapData[parentLevel]
+        let dataKeys = Object.keys(parentData)
+        breakSign:
+        for (let i = 0; i < dataKeys.length; i++) {
+            const d = parentData[dataKeys[i]] || []
+            for (let j = 0; j < d.length; j++) {
+                if (d[j].id === item.parentId) {
+                    parent = d[j]
+                    break breakSign
+                }
+            }
+        }
+    }
+    return parent
 }
