@@ -24,16 +24,18 @@ import {
 // import {
 // 	setTableData,
 // 	initTableAllDataOldIndex,
-// } from './utils/handleTableData'
+
 
 class Table extends Base {
 	constructor(option = {}) {
 		super(option)
+		this.paintLeftIng = false
+		this.paintHeaderIng = false
+		this.paintTableIng = false
 		this.paintLeft()
 		this.paintHeader()
 		this.paintTable()
 	}
- 
 	paintLeft = () => {
 		const pa = this._pa,
 			scrollTop = pa.scrollTop,
@@ -42,7 +44,6 @@ class Table extends Base {
 		pa.leftContext.lineWidth = LINE_WIDTH
 		pa.leftContext.font = `${pa.font}px Arial`
 		pa.paintLeftEnd = 0
-
 		let i = 0 //开始位置从0开始计算 后面需要优化这个开始位置的索引 减少计算
 		for (let len = leftData.length; i < len; i++) {
 			const leftCells = leftData[i].cells || []

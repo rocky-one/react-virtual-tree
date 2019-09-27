@@ -10,6 +10,7 @@ import {
     removeMapDataNode,
     setCheckStatusByDel,
     getItemParentInMapData,
+    createRootItem,
 } from './utils'
 
 export default class HandleTree implements HandleTreeInterface {
@@ -76,28 +77,36 @@ export default class HandleTree implements HandleTreeInterface {
         this.mapData = dat
     }
     private initChildData = (parentItem: NodeItem, child: Array<NodeItem> = []): Array<NodeItem> => {
+        const parent = parentItem ? parentItem : createRootItem()
         return child.map(item => ({
             ...item,
-            level: parentItem.level + 1,
-            parentId: parentItem.id,
+            level: parent.level + 1,
+            parentId: parent.id,
         }))
     }
     private insertChildToViewData = (parentItem: NodeItem, child: Array<NodeItem> = [], index?: number): void => {
-        index = index >= 0 ? index : this.viewData.findIndex(item => item.id === parentItem.id)
+        const parent = parentItem ? parentItem : createRootItem()
+        index = index >= 0 ? index : this.viewData.findIndex(item => item.id === parent.id)+1
         const list: Array<NodeItem> = []
         dfsTree(child, (c: NodeItem) => {
             list.push(c)
             if (!c.open) return false
         })
-        index > -1 && this.viewData.splice(index + 1, 0, ...list)
+        index > -1 && this.viewData.splice(index, 0, ...list)
     }
     private insertChildToMapData = (parentItem: NodeItem, child: Array<NodeItem> = [], index?: number): void => {
-        const hasChild = parentItem.children && parentItem.children.length>0
-        bfTree([{
-            ...parentItem,
-            children: child
-        }], (item: NodeItem) => {
-            if (item.id === parentItem.id) return
+        let hasChild = false, data = []
+        if (parentItem) {
+            hasChild = parentItem.children && parentItem.children.length > 0
+            data = [{
+                ...parentItem,
+                children: child
+            }]
+        }else{
+            data = child
+        }
+        bfTree(data, (item: NodeItem) => {
+            if (parentItem && item.id === parentItem.id) return
             const parentId = item.parentId || 'root'
             const level = item.level
             if (!this.mapData[level]) this.mapData[level] = {}
@@ -106,22 +115,24 @@ export default class HandleTree implements HandleTreeInterface {
                 item.hasLeaf = true
                 item.requested = true
             }
-            if (index >= 0 && item.level === parentItem.level + 1) {
-                this.mapData[level][parentId].splice(index + 1, 0, item)
+            if (parentItem && index >= 0 && item.level === parentItem.level + 1) {
+                this.mapData[level][parentId].splice(index, 0, item)
             } else {
                 this.mapData[level][parentId].push(item)
             }
         })
-        
-        if (hasChild) {
-            if (index >= 0) {
-                parentItem.children.splice(index + 1, 0, ...child)
+        if(parentItem){
+            if (hasChild) {
+                if (index >= 0) {
+                    parentItem.children.splice(index, 0, ...child)
+                } else {
+                    parentItem.children.push(...child)
+                }
             } else {
-                parentItem.children.push(...child)
+                parentItem.children = child
             }
-        }else{
-            parentItem.children = child
         }
+        
     }
     // 销毁
     public destory = (): void => {
@@ -131,14 +142,16 @@ export default class HandleTree implements HandleTreeInterface {
     // 插入子节点到 当前的节点下
     // 1 插入到viewData 2 插入到映射mapData
     public insertChild = (parentItem: NodeItem, child: Array<NodeItem> = [], mapDataindex?: number, viewDataindex?: number): void => {
-        const oldOpen = parentItem.open
-        parentItem.open = true
-        parentItem.requested = true
-        parentItem.hasLeaf = true
+        let oldOpen = false
+        if (parentItem) {
+            oldOpen = parentItem.open
+            parentItem.open = true
+            parentItem.requested = true
+            parentItem.hasLeaf = true
+        }
         const newChild = this.initChildData(parentItem, child)
-        // parentItem.children = newChild
         this.insertChildToMapData(parentItem, newChild, mapDataindex)
-        this.insertChildToViewData(parentItem, !oldOpen ? parentItem.children : newChild, viewDataindex)
+        this.insertChildToViewData(parentItem, !oldOpen && parentItem ? parentItem.children : newChild, viewDataindex)
         this.onCheckedChild(parentItem)
     }
     // 移除节点
@@ -187,7 +200,7 @@ export default class HandleTree implements HandleTreeInterface {
         return []
     }
     private onCheckedChild = (item: NodeItem) => {
-        if (item.hasLeaf) {
+        if (item && item.hasLeaf) {
             dfsTree(item.children, (n: NodeItem) => {
                 n.checked = item.checked || 0
             })

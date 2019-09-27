@@ -851,7 +851,7 @@ class Base {
 		scrollLeft: this._pa.scrollLeft,
 		scrollTop: this._pa.scrollTop
 	})
-	getEditStatus = () =>{
+	getEditStatus = () => {
 		return this._pa.showTextarea
 	}
 	// 设置伪造value状态 是否伪造value

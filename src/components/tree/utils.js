@@ -110,16 +110,18 @@ export const removeMapDataNode = (item, mapData = {}) => {
         }
         const index = data.findIndex(n => n.id === item.id)
         const delNode = data.splice(index, 1)
+        if (item.parentId) {
+            const itemParent = getItemParentInMapData(item, mapData)
+            const child = itemParent.children || []
+            const pindex = child.findIndex(n => n.id === item.id)
+            child.splice(pindex, 1)
+        }
 
-        const itemParent = getItemParentInMapData(item, mapData)
-        const child = itemParent.children || []
-        const pindex = child.findIndex(n => n.id === item.id)
-        child.splice(pindex, 1)
         // 如果当前节点有子节点 需要删除映射数据
-        if(delNode[0].children && delNode[0].children.length){
-            bfTree(delNode,(item)=>{
-                if(item.children&& item.children.length)
-                    mapData[item.level+1][item.id] = null
+        if (delNode[0].children && delNode[0].children.length) {
+            bfTree(delNode, (item) => {
+                if (item.children && item.children.length)
+                    mapData[item.level + 1][item.id] = null
             })
         }
         // 如果当前data.length===0 需要设置父项hasLeaf
@@ -138,13 +140,13 @@ export const removeMapDataNode = (item, mapData = {}) => {
                 for (let j = 0; j < data.length; j++) {
                     if (delNode[0].parentId === data[j].id) {
                         data[j].hasLeaf = false
+                        data[j].children = null
                         break breakSign
                     }
                 }
             }
         }
     }
-
     return mapData
 }
 
@@ -213,4 +215,25 @@ export const getItemParentInMapData = (item, mapData) => {
         }
     }
     return parent
+}
+
+export const getItemPath = (item, mapData) => {
+    let path = [item.id]
+    function loop(item, mapData) {
+        const parent = getItemParentInMapData(item, mapData)
+        path.push(parent.id)
+        if (parent.parentId) {
+            loop(parent, mapData)
+        }
+    }
+    loop(item, mapData)
+
+    return path
+}
+
+export const createRootItem = () => {
+    return {
+        level: -1,
+        id: null,
+    }
 }

@@ -2,6 +2,7 @@ import * as React from 'react'
 import HandleTree from './HandleTree'
 import { TreeProps, NodeItem } from './interface'
 import Node from './Node'
+import { getItemPath } from './utils'
 import './style/tree.scss'
 
 interface TreeState<T> {
@@ -42,7 +43,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         })
     }
     componentDidUpdate() {
-        
+
         // this.onSearchKeys()
     }
     onDragStart = (e) => {
@@ -112,40 +113,18 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         if (!this.dragEnterMapKey) return
         // 先删除原来数据
         let dragKeys = this.dragMapKey.split('-')
+        let keys = this.dragEnterMapKey.split('-')
         let dragItem = this.handleTree.getItemById(dragKeys[2], dragKeys[0])
-        let dragParent = this.handleTree.getItemById(dragKeys[1], Number(dragKeys[0]) - 1)
-                // this.handleTree.getItemParentInMapData({
-                //     id: dragKeys[2],
-                //     parentId: dragKeys[1],
-                //     level: Number(dragKeys[0])
-                // })
-        // if (dragItem.hasLeaf) {
-        //     const levelData = this.handleTree.getMapData()[dragItem.level + 1]
-        //     delete levelData[dragItem.id]
-        // }
-        // let dragSiblingsData
-        // if (dragParent) {
-        //     dragSiblingsData = this.handleTree.getMapData()[dragParent.level + 1][dragParent.id]
-        // } else {
-        //     dragSiblingsData = this.handleTree.getMapData()[0]['root']
-        // }
-        // let dragItemIndex = this.handleTree.getItemIndexInSiblings({
-        //     id: dragKeys[2],
-        //     parentId: dragKeys[1],
-        //     level: Number(dragKeys[0])
-        // }, dragSiblingsData)
-
-        // let delData = dragSiblingsData.splice(dragItemIndex, 1)
-        // let listChild = delData
-        // if (dragParent) {
-        //     listChild.push(...this.handleTree.getShowChildData(delData[0], false))
-        // }
-        // this.handleTree.getViewData().splice(this.dragItemIndex, listChild.length)
-
+        let path = []
+        if (dragKeys[0] < keys[0]) {
+            path = getItemPath(dragItem, this.handleTree.getMapData())
+            if (path.indexOf(keys[1]) != -1) {
+                return
+            }
+        }
         this.handleTree.removeNode(dragItem)
 
         // 再插入到tree和list 注意子节点也要一起插入 [...this.handleTree.getItemById(dragKeys[2],dragKeys[0])]
-        let keys = this.dragEnterMapKey.split('-')
         let parent
         if (this.dragMovePosition === 'middle') {
             parent = this.handleTree.getItemById(keys[2], keys[0])
@@ -181,19 +160,24 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             }, siblingsData)
 
         } else {
-            const viewData = this.handleTree.getViewData()
             mapDataIndex = siblingsData.length
-            for(let i = viewDataindex+1; i<viewData.length;i++){
-                if(viewData[i].level<=parent.level){
-                    viewDataindex = i-1
+        }
+
+        if (this.dragMovePosition == 'middle' || this.dragMovePosition == 'bottom') {
+            const viewData = this.handleTree.getViewData()
+            let parentLevel = parent ? parent.level : 0
+            for (let i = viewDataindex + 1; i < viewData.length; i++) {
+                if (viewData[i].level <= parentLevel) {
+                    viewDataindex = i
                     break
                 }
             }
         }
-        if (this.dragMovePosition == 'top') {
-            viewDataindex = viewDataindex > 0 ? viewDataindex -= 1 : viewDataindex
-            mapDataIndex = mapDataIndex > 0 ? mapDataIndex -= 1 : mapDataIndex
-        }
+
+        // if (this.dragMovePosition == 'top') {
+        //     viewDataindex = viewDataindex > 0 ? viewDataindex -= 1 : viewDataindex
+        //     mapDataIndex = mapDataIndex > 0 ? mapDataIndex -= 1 : mapDataIndex
+        // }
         this.handleTree.insertChild(parent, [dragItem], mapDataIndex, viewDataindex)
     }
     onSearchKeys = (text: string) => {
