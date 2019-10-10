@@ -150,8 +150,8 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         } else {
             siblingsData = this.handleTree.getMapData()[0]['root']
         }
-
-        viewDataindex = this.handleTree.getViewData().findIndex(v => v.id === keys[2])
+        const viewData = this.handleTree.getViewData();
+        viewDataindex = viewData.findIndex(v => v.id === keys[2])
         if (this.dragMovePosition !== 'middle') {
             mapDataIndex = this.handleTree.getItemIndexInSiblings({
                 id: keys[2],
@@ -164,8 +164,9 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
         }
 
         if (this.dragMovePosition == 'middle' || this.dragMovePosition == 'bottom') {
-            const viewData = this.handleTree.getViewData()
+            // const viewData = this.handleTree.getViewData()
             let parentLevel = parent ? parent.level : 0
+
             for (let i = viewDataindex + 1; i < viewData.length; i++) {
                 if (viewData[i].level <= parentLevel) {
                     viewDataindex = i
@@ -173,7 +174,10 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                 }
             }
         }
-
+        if(viewDataindex === viewData.length-1){
+            viewDataindex +=1
+        }
+        console.log(viewDataindex,'viewDataindex')
         // if (this.dragMovePosition == 'top') {
         //     viewDataindex = viewDataindex > 0 ? viewDataindex -= 1 : viewDataindex
         //     mapDataIndex = mapDataIndex > 0 ? mapDataIndex -= 1 : mapDataIndex
