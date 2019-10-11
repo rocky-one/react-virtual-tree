@@ -174,10 +174,9 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
                 }
             }
         }
-        if(viewDataindex === viewData.length-1){
-            viewDataindex +=1
+        if (this.dragMovePosition == 'bottom' && viewDataindex === viewData.length - 1) {
+            viewDataindex += 1
         }
-        console.log(viewDataindex,'viewDataindex')
         // if (this.dragMovePosition == 'top') {
         //     viewDataindex = viewDataindex > 0 ? viewDataindex -= 1 : viewDataindex
         //     mapDataIndex = mapDataIndex > 0 ? mapDataIndex -= 1 : mapDataIndex
