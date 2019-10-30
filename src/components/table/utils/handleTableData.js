@@ -4,6 +4,7 @@ import {
 import {
     getLastHeaderCells
 } from './handleHeaderData'
+import { defer } from './common';
 
 export const initTableData = (tableAllData = [], leftAllData, leftData, headerAllData, headerData, zero = false) => {
     const headerLastCells = getLastHeaderCells(headerAllData)
@@ -19,6 +20,11 @@ export const initTableData = (tableAllData = [], leftAllData, leftData, headerAl
         let newCells = []
         cells.forEach((cell, j) => {
             let newCell = { ...cell }
+            // originalRowIndex排序
+            if (!newCell.hasOwnProperty('originalRowIndex')) {
+                newCell.originalRowIndex = cell.rowIndex
+                newCell.originalColumnIndex = cell.columnIndex
+            }
             newCell.oldRowIndex = cell.rowIndex
             newCell.oldColumnIndex = cell.columnIndex
             newCell.x = headerLastCells[j].x
@@ -50,60 +56,142 @@ export const getLeftRowLastCell = (leftData = [], row) => {
 
 }
 
+export const setTableDataByExpandRow = (changeData, tableData, tableAllData, info, open) => {
+    if (open) {
+        const newTableData = []
+        for (let i = 0; i < changeData.length; i++) {
+            const row = tableAllData[changeData[i]]
+            // const cells = row.cells
+            // for (let j = 0; j < cells.length; j++) {
+
+            // }
+            // tableData[info.startIndex++].push(row)
+            newTableData.push(row)
+        }
+        tableData.splice(info.startIndex, 0, ...newTableData)
+    } else {
+        tableData.splice(info.startIndex, changeData.length)
+    }
+    let index = info.startIndex
+    function updateXY(len) {
+        for (; index < len; index++) {
+            console.log(index)
+        }
+    }
+    updateXY()
+
+    function loop() {
+
+    }
+
+}
+
 /**
  * 根据表头和左侧表的数据 设置表格区域的数据
  * @param {array} leftData 
  * @param {array} headerData 
  * @param {array} tableData  
+ * rowKey = 'oldRowIndex',
+    colKey = 'oldColumnIndex'
  */
-export const setTableData = (leftData = [], headerData = [], tableAllData = [], rowKey = 'oldRowIndex', colKey = 'oldColumnIndex') => {
-    let newTableData = setTableRows(leftData, tableAllData, rowKey)
-    newTableData = setTableCols(leftData, headerData, newTableData, colKey)
+export const setTableData = (
+    leftData = [],
+    headerData = [],
+    tableAllData = [],
+) => {
+    let newTableData = setTableRows({
+        leftData, tableAllData,
+        rowKey: 'oldRowIndex'
+    })
+    newTableData = setTableCols({
+        leftData,
+        headerData,
+        newTableData,
+        colKey: 'oldColumnIndex'
+    })
+
     return newTableData
 }
 
-export const setTableRows = (leftData = [], tableAllData = [], rowKey) => {
+export const getViewTableData = (obj) => {
+    let {
+        leftData = [],
+        headerData = [],
+        tableAllData = [],
+        rowViewEndIndex
+    } = obj
+
+    let newTableData = setTableRows({
+        leftData, tableAllData,
+        rowKey: 'oldRowIndex'
+    })
+    newTableData = setTableCols({
+        leftData,
+        headerData,
+        newTableData,
+        colKey: 'oldColumnIndex',
+        rowViewEndIndex
+    })
+
+    return newTableData
+}
+
+export const setTableRows = (obj) => {
+    let { leftData = [], tableAllData = [], rowKey } = obj
     const rowIndexObj = getLeftDataIndex(leftData, rowKey);
     let newTableData = [];
-    tableAllData.forEach(row => {
+    for (let i = 0, len = tableAllData.length; i < len; i++) {
         let newRow = {
-            ...row
+            ...tableAllData[i]
         };
-        if (row.cells.length > 0 && rowIndexObj[row.cells[0][rowKey]]) {
+        if (newRow.cells.length > 0 && rowIndexObj[newRow.cells[0][rowKey]]) {
             newTableData.push(newRow);
         }
-    })
+    }
+
     return newTableData
 }
 
-export const setTableCols = (leftData = [], headerData = [], newTableData = [], colKey) => {
+export const setTableCols = (obj) => {
+    let { leftData = [], headerData = [], newTableData = [], colKey, viewEndRowIndex } = obj
     const headerLastCells = getLastHeaderCells(headerData)
-    const headerColIndex = getHeaderDataIndex(headerData, colKey);
-    newTableData.forEach((row, index) => {
-        const cells = row.cells;
-        const cs = [];
-        let leftCell = leftData[index].cells[leftData[index].cells.length - 1]
-        let preCell = false;
-        let newColIndex = 0
-        // row.height = leftCell.height
-        // row.y = leftCell.y //preRow ? preRow.y + preRow.height : 0 
-        row.rowIndex = index
-        for (let j = 0; j < cells.length; j++) {
-            let cell = cells[j];
-            //let hasCol = headerColIndex.findIndex(i => i === cell.columnIndex);
-            if (headerColIndex[cell[colKey]]) {//hasCol >= 0
-                cell.x = preCell ? preCell.x + preCell.width : 0
-                cell.y = leftCell.y //leftData[index].cells[]//row.y
-                cell.newColIndex = newColIndex++;
-                cell.newRowIndex = index;
-                cell.height = row.height
-                cell.width = headerLastCells[cell.newColIndex].width || ROW_WIDTH
-                cs.push(cell);
-                preCell = cell;
+    const headerColIndex = getHeaderDataIndex(headerData, colKey)
+    let i = 0
+    function updateTable(len) {
+        for (; i < len; i++) {
+            const cells = newTableData[i].cells;
+            const cs = [];
+            let leftCell = leftData[i].cells[leftData[i].cells.length - 1]
+            let preCell = false;
+            let newColIndex = 0
+            newTableData[i].rowIndex = i
+            for (let j = 0; j < cells.length; j++) {
+                let cell = cells[j];
+                if (!cell) break
+                if (headerColIndex[cell[colKey]]) {
+                    cell.x = preCell ? preCell.x + preCell.width : 0
+                    cell.y = leftCell.y
+                    cell.newColIndex = newColIndex++;
+                    cell.newRowIndex = i;
+                    cell.height = newTableData[i].height
+                    cell.width = headerLastCells[cell.newColIndex].width || ROW_WIDTH
+                    cs.push(cell);
+                    preCell = cell;
+                }
             }
+            newTableData[i].cells = cs;
         }
-        row.cells = cs;
-    })
+    }
+    updateTable(newTableData.length)
+
+    // let l = newTableData.length
+    // if (viewEndRowIndex && viewEndRowIndex<l-1) {
+    //     updateTable(viewEndRowIndex + 1)
+    //     defer(() => updateTable(l))
+    // } else {
+    //     updateTable(l)
+    // }
+
     return newTableData
 }
 
@@ -127,7 +215,7 @@ const getLeftDataIndex = (leftData = [], key) => {
  * 根据表格头部数据获取当前显示列的数据的索引
  * @param {array} headerData 
  */
-const getHeaderDataIndex = (headerData = [], key) => {
+export const getHeaderDataIndex = (headerData = [], key) => {
     let indexObj = {};
     if (headerData.length > 0) {
         let lastCells = headerData[headerData.length - 1].cells;
@@ -148,4 +236,37 @@ export const initTableAllDataOldIndex = (data = []) => {
         }
     }
     return data
+}
+
+export const tableAllDataAddRow = (tableAllData, index, addRows) => {
+    const list = tableAllData
+    const newTableCell = {
+        x: 0,
+        y: tableAllData[index - 1 < 0 ? 0 : index - 1].y + 24,
+        rowIndex: tableAllData[index].rowIndex,
+        height: 24,
+        cells: []
+    }
+    newTableCell.cells = tableAllData[index].cells.map(v => {
+        return {
+            ...v,
+            cellReadOnly: false,
+            color: '',
+            backgroundColor: '',
+            updated: true,
+            value: '',
+            height: 24
+        }
+    })
+    addRows ? list.splice(index, 0, ...JSON.parse(JSON.stringify(addRows))) : list.splice(index, 0, newTableCell)
+    for (let i = index; i < list.length; i++) {
+        list[i].y = list[i - 1].y + list[i - 1].height
+        list[i].rowIndex = i
+        list[i].cells.forEach(v => {
+            v.y = list[i].y
+            v.rowIndex = list[i].rowIndex
+            // v.oldRowIndex = list[i].rowIndex
+        })
+    }
+    return list
 }

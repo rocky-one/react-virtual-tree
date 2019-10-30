@@ -449,9 +449,7 @@ class ScrollBar {
         this.vDown && this.verticalMove(e.pageY)
         this.hDown && this.horizontalMove(e.pageX)
     }
-    getMouseDownStatus = () => {
-        return this.vDown || this.hDown
-    }
+
     handleMouseUp = (e) => {
         this.autoScroll = false
         this.verticalUp(e.pageX, e.pageY)

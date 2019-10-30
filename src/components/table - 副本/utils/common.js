@@ -2,7 +2,6 @@ import { SCROLL_SIZE, ROW_HEIGHT, LINE_HEIGHT } from '../tableConst'
 import {
     getLeftRowLastCell
 } from './handleTableData'
-import { getLeftHeight } from './handleLeftData'
 
 /**
  * @desc 添加属性到一个对象上
@@ -70,11 +69,11 @@ export function strip(num, precision = 12) {
 }
 
 // 折行格式   处理换行
-export function wrapText(pa, text, maxWidth, x, y) {
+export function wrapText(pa, text, maxWidth, x, y, height) {
     const c = document.createElement("canvas");
     const ctx = c.getContext("2d");
     ctx.font = `${pa.font}px Arial`
-    const arrText = text.toString().split('');
+    const arrText = text.split('');
     let line = '';
     let res = []
     // let maxLines = Math.floor(height / LINE_HEIGHT)
@@ -87,6 +86,8 @@ export function wrapText(pa, text, maxWidth, x, y) {
             const testLine = line + arrText[n];
             const metrics = ctx.measureText(testLine);
             const testWidth = metrics.width;
+            //高度不够时 不在显示剩余文字 直接跳出
+            // if (res.length >= maxLines) break
             if (testWidth > maxWidth && n > 0) {
                 res.push({ line, x, y })
                 line = arrText[n];
@@ -121,7 +122,7 @@ export function getRowHeight(pa, rowList) {
 // 更新行高
 export function setRowHeight(pa, leftAllData, leftData, tableData, tableAllData) {
     const addMap = {}
-    // let leftHeight = 0
+    let leftHeight = 0
     leftData.forEach((row, rowIndex) => {
         const cell = row.cells[row.cells.length - 1]
         if (!cell.hasDrag) {
@@ -129,7 +130,7 @@ export function setRowHeight(pa, leftAllData, leftData, tableData, tableAllData)
                 ? getRowHeight(pa, tableData[rowIndex].cells)
                 : (cell.height || ROW_HEIGHT)
         }
-        // leftHeight += cell.height
+        leftHeight += cell.height
         if (rowIndex > 0) {
             const preCells = leftData[rowIndex - 1].cells
             cell.y = preCells[preCells.length - 1].y + preCells[preCells.length - 1].height
@@ -147,9 +148,8 @@ export function setRowHeight(pa, leftAllData, leftData, tableData, tableAllData)
             }
         })
     })
-    // pa.leftHeight = leftHeight
-    pa.leftHeight = getLeftHeight(pa.leftData)
-    pa.tableHeight = pa.leftHeight
+    pa.leftHeight = leftHeight
+
     // 更新表格高度
     for (let i = 0; i < tableData.length; i++) {
         const rows = tableData[i].cells
@@ -174,9 +174,4 @@ export const setCellsOpenStatus = (data = [], status, cb) => {
         }
     }
     return data
-}
-
-export const defer = (callback) => {
-    return setTimeout(callback,0)
-    // return Promise.resolve().then(callback)
 }

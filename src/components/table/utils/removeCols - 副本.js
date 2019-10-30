@@ -1,12 +1,12 @@
 import { findPre } from './common'
 
 // 更新colSpan
-function updateColSpan(cols = [], headerData = []) {
+function updateColSpan(cols = [], headerData) {
 	const len = headerData.length
-	if (len === 0) return headerData
 	const lastRowCells = headerData[len - 1].cells
 	const colsMap = {}
 	cols.forEach(i => colsMap[i] = i)
+
 	for (let i = 0; i < lastRowCells.length; i++) {
 		const col = lastRowCells[i].columnIndex
 		if (colsMap.hasOwnProperty(col)) {
@@ -34,9 +34,8 @@ function updateColSpan(cols = [], headerData = []) {
 
 
 // 更新宽
-function updateWidth(headerData = []) {
+function updateWidth(headerData) {
 	const len = headerData.length
-	if (len === 0) return headerData
 	const cells = headerData[len - 1].cells
 	for (let i = 0; i < cells.length; i++) {
 		const cell = cells[i]
@@ -53,11 +52,8 @@ function updateWidth(headerData = []) {
 // 更新parentId indentCount childCount
 function updateParentId(delCell, data) {
 	const childCount = delCell.childCount
-	const cells = data[delCell.rowIndex] ? data[delCell.rowIndex].cells : null
-	if (!cells) return
 	if (childCount > 0) {
-		// const cells = data[delCell.rowIndex] ? data[delCell.rowIndex].cells : null
-		// if (!cells) return
+		const cells = data[delCell.rowIndex].cells
 		let newParentId = delCell.parentId
 		let start = false
 		for (let i = 0; i < cells.length; i++) {
@@ -73,16 +69,15 @@ function updateParentId(delCell, data) {
 			}
 			if (cells[i].parentId === delCell.id) {
 				cells[i].parentId = newParentId
-				
-				// newParentId = cells[i].id
-			} 
-			cells[i].indentCount -= 1
-			// else if (cells[i].parentId === newParentId) {
-			// 	cells[i].indentCount -= 1
-			// 	newParentId = cells[i].id
-			// }
+				cells[i].indentCount -= 1
+				newParentId = cells[i].id
+			} else if (cells[i].parentId === newParentId) {
+				cells[i].indentCount -= 1
+				newParentId = cells[i].id
+			}
 		}
 	}
+
 	if (delCell.parentId) {
 		let pId = delCell.parentId
 		const cells = data[delCell.rowIndex].cells
@@ -132,7 +127,7 @@ function updateLink(data) {
 
 		for (let j = 0; j < cells.length; j++) {
 			const cell = cells[j]
-			// cell.open = true
+			cell.open = true
 			cell.newRowIndex = i
 			cell.rowIndex = i
 			cell.newColIndex = j
@@ -186,7 +181,9 @@ function updateIndex(data = []) {
 		const cells = data[i].cells
 		if (!xMap[i]) { xMap[i] = { x: 0 } }
 		// if (!rowMap[i]) { rowMap[i] = { start: 0 } }
+
 		for (let j = 0; j < cells.length; j++) {
+
 			const cell = cells[j]
 			// cell.open = true
 			// cell.newRowIndex = i
@@ -240,17 +237,14 @@ function updateIndex(data = []) {
 }
 
 // 移除列
-export const removeCols = (cols = [], headerData, leftAllData = []) => {
-	if (cols.length === 0 && leftAllData.length === 0) return {
-		headerData: [],
-		headerAllData: [],
-		width: 0
-	}
+export const removeCols = (cols = [], headerData) => {
+	if (cols.length === 0) return false
 	headerData = updateColSpan(cols, headerData)
 	headerData = removeHasDelete(headerData, updateParentId)
 	headerData = updateLink(headerData)
 	headerData = updateWidth(headerData)
 	const obj = updateIndex(headerData)
+
 	return {
 		headerData: obj.data,
 		headerAllData: obj.data,
@@ -258,7 +252,8 @@ export const removeCols = (cols = [], headerData, leftAllData = []) => {
 	}
 }
 
-export const removeBodyCols = (cols = [], data = [], cb) => {
+
+export const removeBodyCols = (cols = [], data = []) => {
 	if (data.length === 0 || cols.length === 0) return data
 	const colsMap = {}
 	cols.forEach(i => { colsMap[i] = true })
@@ -267,8 +262,7 @@ export const removeBodyCols = (cols = [], data = [], cb) => {
 		const cells = data[i].cells
 		for (let j = 0; j < cells.length; j++) {
 			if (colsMap[cells[j].columnIndex]) {
-				const del = cells.splice(j, 1)
-				cb && cb(del[0])
+				cells.splice(j, 1)
 				j--
 			} else {
 				cells[j].columnIndex = j

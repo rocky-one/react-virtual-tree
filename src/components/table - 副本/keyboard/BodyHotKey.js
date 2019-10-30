@@ -42,6 +42,7 @@ function getActiveArea(tableData, area) {
     return avtiveArea
 }
 
+
 export default class BodyHotKey {
     constructor(option) {
         this.tableIns = option.tableIns
@@ -53,11 +54,11 @@ export default class BodyHotKey {
     //     }
     // }
     ctrlC = (event) => {
-        if (this.tableIns._pa.showTextarea) return
+        if(this.tableIns._pa.showTextarea) return 
         this.hotKey['ctrlC'] && this.hotKey['ctrlC'](event)
     }
     ctrlV = (event) => {
-        if (this.tableIns._pa.showTextarea) return
+        if(this.tableIns._pa.showTextarea) return 
         this.hotKey['ctrlV'] && this.hotKey['ctrlV'](event)
     }
     tab = (event) => {
@@ -106,38 +107,36 @@ export default class BodyHotKey {
             if (pa.showTextarea) {
                 this.tableIns._blurCb(event.target)
             }
-            if (pa.formType !== '1' && !pa.fakeValue) {
-                const activeArea = getActiveArea(pa.tableData, area)
-                newRowIndex++
-                const cells = activeArea[0].cells
-                if (newRowIndex > activeArea[activeArea.length - 1].rowIndex) {
-                    newRowIndex = activeArea[0].rowIndex
-                    newColIndex++
-                    if (newColIndex > cells[cells.length - 1].newColIndex) {
-                        newColIndex = cells[0].newColIndex
-                    }
+            const activeArea = getActiveArea(pa.tableData, area)
+            newRowIndex++
+            const cells = activeArea[0].cells
+            if (newRowIndex > activeArea[activeArea.length - 1].rowIndex) {
+                newRowIndex = activeArea[0].rowIndex
+                newColIndex++
+                if (newColIndex > cells[cells.length - 1].newColIndex) {
+                    newColIndex = cells[0].newColIndex
                 }
-                this.tableIns.setSelectedCell(pa.tableData[newRowIndex].cells[newColIndex])
-                if (area.startRowIndex === area.endRowIndex &&
-                    area.startColIndex === area.endColIndex) {
-                    pa.area = {
-                        startRowIndex: pa.selectedCell.newRowIndex,
-                        startColIndex: pa.selectedCell.newColIndex,
-                        endRowIndex: pa.selectedCell.newRowIndex,
-                        endColIndex: pa.selectedCell.newColIndex
-                    }
-                }
-                this.tableIns.repaintRight()
-                ScrollToView(pa)
             }
+            this.tableIns.setSelectedCell(pa.tableData[newRowIndex].cells[newColIndex])
+            if (area.startRowIndex === area.endRowIndex &&
+                area.startColIndex === area.endColIndex) {
+                pa.area = {
+                    startRowIndex: pa.selectedCell.newRowIndex,
+                    startColIndex: pa.selectedCell.newColIndex,
+                    endRowIndex: pa.selectedCell.newRowIndex,
+                    endColIndex: pa.selectedCell.newColIndex
+                }
+            }
+            this.tableIns.repaintRight()
+            ScrollToView(pa)
         }
     }
     upArrow = (event) => {
         const pa = this.tableIns._pa
+        // if (pa.showTextarea) return
         if (!isTarget(event.target, pa.key)) return
         let selectedCell = pa.selectedCell
         if (selectedCell) {
-            if (pa.showTextarea && selectedCell.datatype === '3') return
             let newRowIndex = pa.selectedCell.newRowIndex
             let newColIndex = pa.selectedCell.newColIndex
             const bodyData = pa.tableData
@@ -177,10 +176,10 @@ export default class BodyHotKey {
     }
     downArrow = () => {
         const pa = this.tableIns._pa
+        //if (pa.showTextarea) return
         if (!isTarget(event.target, pa.key)) return
         let selectedCell = pa.selectedCell
         if (selectedCell) {
-            if (pa.showTextarea && selectedCell.datatype === '3') return
             let newRowIndex = pa.selectedCell.newRowIndex
             let newColIndex = pa.selectedCell.newColIndex
             let scrollTop = pa.scrollTop
@@ -278,7 +277,7 @@ export default class BodyHotKey {
             newColIndex--
             // 左 
             if (pa.scrollBar.hasHScroll()) {
-                if (newColIndex - 1 < getPointStartColIndex(bodyData, scrollLeft)) {
+                if (newColIndex - 1 < getPointStartColIndex(bodyData,  scrollLeft)) {
                     scrollLeft -= pa.selectedCell.width
                     if (scrollLeft < 0) {
                         pa.scrollLeft = 0
@@ -308,13 +307,8 @@ export default class BodyHotKey {
     }
     exceptHotkeyRun = (event, isCtrl) => {
         const pa = this.tableIns._pa
-        if (pa.showTextarea) return
-        if (pa.formType === '1' && pa.fakeValue) {
-            if (!pa.selectedCell || !pa.selectedCell.updated) return
-        } else {
-            if (pa.keyboardEvent) {
-                if (!pa.keyboardEvent(pa.selectedCell, event.keyCode)) return
-            }
+        if (pa.keyboardEvent) {
+            if (!pa.keyboardEvent(pa.selectedCell, event.keyCode)) return
         }
         if (!isTarget(event.target, pa.key)) return
         if (!pa.selectedCell || isCtrl) return false

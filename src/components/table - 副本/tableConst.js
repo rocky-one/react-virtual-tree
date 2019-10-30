@@ -16,8 +16,6 @@ export const BG_COLOR = '#fff' // 默认背景色
 
 export const COLOR = '#000' // 默认字体颜色
 
-export const DYNA_COLOR = '#c1c1c1'
-
 export const AREA_BG_COLOR = '#ccc' // 选中区域背景颜色
 
 export const SCROLL_SIZE = 16 // 滚动条大小

@@ -1,23 +1,16 @@
 import ScrollBar from './scrollBar/ScrollBar'
 import CreateTextarea from './textarea/CreateTextarea'
 import Record from './record/Record'
-import { BG_COLOR_TITLE, BORDER_COLOR, SCROLL_SIZE, ROW_HEIGHT } from './tableConst'
-import {
-	initTableData,
-	setTableData,
-	getLeftRowLastCell,
-	tableAllDataAddRow
-} from './utils/handleTableData'
+import { BG_COLOR_TITLE, BORDER_COLOR } from './tableConst'
+import { initTableData, setTableData, getLeftRowLastCell } from './utils/handleTableData'
 import { setDomCss, setCanvasCss } from './utils'
 import { removeBodyRows, removeRows } from './utils/removeRows'
 import { removeBodyCols, removeCols } from './utils/removeCols'
-import { execCommandCopy } from './utils/hotKey'
 import { addEvent, removeEvent } from './event/eventBind'
 import EventCore from './event/EventCore'
 import { keyMap, globalEventsMap } from './event/GlobalEvent'
 import BodyHotKey from './keyboard/BodyHotKey'
-import { openLeftByLevel, closeLeftByLevel } from './utils/openAndCloseLeft'
-import { openHeaderByLevel, closeHeaderByLevel } from './utils/openAndCloseHeader'
+import { closeAllLeft } from './utils/closeAllLeft'
 import Keyboard from './keyboard/Keyboard'
 import GlobalEvent from './event/GlobalEvent'
 
@@ -29,7 +22,6 @@ import {
 	updateLeftDataYWithIndex,
 	getLeftHeight,
 	findCellChildIsShowRows,
-	leftDataAddRow
 } from './utils/handleLeftData'
 
 import {
@@ -65,8 +57,8 @@ import {
 
 /**
  * @desc 创建外层容器
- * @param {*} ele
- * @param {*} pa
+ * @param {*} ele 
+ * @param {*} pa 
  */
 function createContainer(ele, pa) {
 
@@ -75,6 +67,8 @@ function createContainer(ele, pa) {
 		height: `${pa.height}px`,
 	}))
 	addAttr(pa, 'leftAndRightBox', createDom('div', 'leftAndRightBox', 'left-and-right-box', {
+		// width: `${pa.width}px`,
+		// height: `${pa.leftHeight}px`,
 		position: 'ralative',
 		zIndex: 3,
 	}))
@@ -85,9 +79,9 @@ function createContainer(ele, pa) {
 
 /**
  * @desc 创建滚动条
- * @param {*} pa
- * @param {*} verticalScrollCb
- * @param {*} horizontalScrollCb
+ * @param {*} pa 
+ * @param {*} verticalScrollCb 
+ * @param {*} horizontalScrollCb 
  */
 function createScrollBar(pa, verticalScrollCb, horizontalScrollCb) {
 	addAttr(pa, 'scrollBar', new ScrollBar({
@@ -120,7 +114,7 @@ function createScrollBar(pa, verticalScrollCb, horizontalScrollCb) {
 
 /**
  * @desc 创建左侧canvas
- * @param {*} pa
+ * @param {*} pa 
  */
 function createLeftCanvas(pa) {
 	pa.leftBox = createDom('div', 'leftBox', 'left-box', {
@@ -159,7 +153,7 @@ function createRightHeaderCanvas(pa) {
 		width: `${pa.rightSurplusWidth}px`,
 		height: `${pa.headerHeight}px`,
 		left: `${pa.leftWidth}px`,
-		zIndex: 4,
+		zIndex: 1,
 		// overflow: 'hidden',
 	})
 	pa.rightHeaderCont = createDom('div', 'rightHeaderCont', 'right-header-cont', {
@@ -187,7 +181,7 @@ function createTableCanvas(pa) {
 		height: `${pa.tableBodyHeight}px`,
 		left: `${pa.leftWidth}px`,
 		top: `${pa.headerHeight}px`,
-		zIndex: 3,
+		zIndex: 1,
 	})
 	pa.tableCanvas = createCanvas({
 		width: pa.rightSurplusWidth,
@@ -220,6 +214,25 @@ function getSelectedRegion(area, tableData) {
 	}
 	return rowColIndex
 }
+
+// const setChild = (list, child) => {
+//     for(let k in list) {
+//         if (list[k].id === child.parentId) {
+//             if (!list[k].children){
+//                 list[k].children = [child]
+//             } else {
+//                 if (!list[k].children.some(v => v.id === child.id)){
+//                     list[k].children.push(child)
+//                 }
+//             }
+//             return list
+//         } else {
+//             if (list[k].children) {
+//                 return setChild(list[k].children, child)
+//             }
+//         }
+//     }
+// }
 
 const setDimMems = (dims, index, cells, data) => {
 	const pushDim = (cell, d, i) => {
@@ -281,12 +294,10 @@ function updateScrollLeft(pa, scrollLeft = 0) {
 	pa.scrollLeft = scrollLeft
 }
 // 创建textareaInstance
-function createTextareas(pa, cbObj) {
+function createTextareas(pa, blurCb) {
 	addAttr(pa, 'textareaInstance', new CreateTextarea({
 		container: pa.tableBox,
-		blurCb: cbObj.blurCb,
-		onCopy: cbObj.onCopy,
-		onPaste: cbObj.onPaste,
+		blurCb: blurCb,
 		key: pa.key,
 	}))
 }
@@ -301,7 +312,7 @@ function createToolTip(pa) {
 		background: 'rgba(0,0,0,0.6)',
 		left: 0,
 		top: 0,
-		zIndex: 2001,
+		zIndex: 9999,
 		display: 'none',
 		color: '#fff',
 	})
@@ -311,7 +322,6 @@ function createToolTip(pa) {
 // 根据滚动条更新高
 function updateHeightByScorll(pa, height) {
 	pa.tableHeight = (height || pa.tableHeight)
-	pa.leftHeight = pa.tableHeight
 }
 // 根据滚动条更新宽
 function updateWidthByScroll(pa, width) {
@@ -346,13 +356,9 @@ class Base {
 			showExpandArrow: option.hasOwnProperty('showExpandArrow') ? option.showExpandArrow : true,
 			fakeValue: option.fakeValue || false, // 切换模式
 			miniWidth: option.miniWidth || false,
-			formType: option.formType,
 			colOpen: option.colOpen,
 			rowOpen: option.rowOpen,
-			rowOpenLevel: option.rowOpenLevel || 0,
-			colOpenLevel: option.colOpenLevel || 0,
 			key: Date.now().toString(36), //生成一个唯一标记 用于键盘事件响应判断 或者其他操作
-			validatePickList: option.validatePickList || null, // 下拉验证回调 add by lynn
 		}
 		this.initWidthHeight(option.width, option.height)
 		this.initData({
@@ -363,6 +369,7 @@ class Base {
 		this.initSizeAttr(option)
 		this.initFnAttr(option)
 		this.init(option)
+
 		this.eventCore = new EventCore({
 			tableIns: this,
 		})
@@ -371,17 +378,14 @@ class Base {
 		this._pa.ratio = getPixelRatio(this._pa.leftContext)
 		// GlobalEvent.setTable(this)
 	}
-	setColOpenStatus(level = 0) {
-		this._pa.colOpenLevel = level
+	setColOpenStatus(open = false) {
+		this._pa.colOpen = open
 	}
-	setRowOpenStatus(level = 0) {
-		this._pa.rowOpenLevel = level
+	setRowOpenStatus(open = false) {
+		this._pa.rowOpen = open
 	}
 	setArrowClickStatus(status = true) {
 		this._pa.arrowCanClick = status
-	}
-	getArrowStatus() {
-		return this._pa.arrowCanClick
 	}
 	setExpandArrowStatus(status = false) {
 		this._pa.showExpandArrow = status
@@ -389,21 +393,19 @@ class Base {
 	initWidthHeight(width, height) {
 		this._pa.width = width
 		this._pa.height = height
-
 	}
 	initData(data) {
-		let t = new Date()
 		const pa = this._pa
 		const leftData = data.leftData || pa.leftData || []
 		const headerData = data.headerData || pa.headerData || []
 		const tableData = data.tableData || pa.tableData || []
 		const leftInfoObj = initLeftInfo(leftData, pa.miniWidth)
-		const leftDataObj = (pa.rowOpenLevel === Infinity && !pa.showExpandArrow)
+		const leftDataObj = (pa.rowOpen && !pa.showExpandArrow)
 			? initOpenLeftData(leftData, leftInfoObj.leftInfoMap)
-			: initLeftData(leftData, leftInfoObj.leftInfoMap, pa.rowOpenLevel)//pa.rowOpen
-		const headerDataObj = (pa.colOpenLevel === Infinity && !pa.showExpandArrow)
+			: initLeftData(leftData, leftInfoObj.leftInfoMap, pa.rowOpen)
+		const headerDataObj = (pa.colOpen && !pa.showExpandArrow)
 			? initOpenHeaderData(headerData)
-			: initHeaderData(headerData, pa.colOpenLevel) //pa.colOpen
+			: initHeaderData(headerData, pa.colOpen)
 		const tableDataObj = initTableData(
 			tableData,
 			leftDataObj.leftAllData,
@@ -413,16 +415,14 @@ class Base {
 		addAttr(pa, leftInfoObj, leftDataObj, headerDataObj, tableDataObj)
 		// 不是定义模式 才自动计算高度
 		if (pa.showExpandArrow) {
-			// setRowHeight(pa, pa.leftAllData, pa.leftAllData, pa.tableAllData)
-			// setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
+			setRowHeight(pa, pa.leftAllData, pa.leftAllData, pa.tableAllData)
+			setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
 		}
-		console.log('初始化数据计算耗时: ',new Date() -t)
 	}
 	initSizeAttr(option = {}) {
 		const pa = this._pa
 		addAttr(pa, 'width', option.width || pa.width)
 		addAttr(pa, 'height', option.height || pa.height)
-		addAttr(pa, 'rowViewTotal', Math.ceil(pa.height / ROW_HEIGHT))
 		addAttr(pa, 'tableWidth', pa.headerWidth) // 内容宽
 		addAttr(pa, 'tableHeight', pa.leftHeight) // 内容高
 		addAttr(pa, 'vScrollSize', getScrollSize(pa.tableHeight, pa.height - pa.headerHeight))
@@ -436,7 +436,6 @@ class Base {
 		addAttr(pa, 'methodQueue', []) // 用于优化大量计算时,上一次计算还未结束,下一次计算又开始的情况
 		addAttr(pa, 'methodQueue2', [])
 		addAttr(pa, 'clickLeftCell', null)
-		addAttr(pa, 'dynaLeftCell', null)
 		addAttr(pa, 'clickHeaderCell', null)
 		addAttr(pa, 'headerDistance', 0)
 	}
@@ -448,13 +447,10 @@ class Base {
 		addAttr(pa, 'verticalScrollCb', option.verticalScrollCb)
 		addAttr(pa, 'horizontalScrollCb', option.horizontalScrollCb)
 		addAttr(pa, 'handleMouseMove', option.handleMouseMove)
-		addAttr(pa, 'handleMouseMoveOnLeft', option.handleMouseMoveOnLeft)
-		addAttr(pa, 'handleLeftMouseleave', option.handleLeftMouseleave)
 		addAttr(pa, 'toolTipRender', option.toolTipRender)
 		addAttr(pa, 'format', option.format)
 		addAttr(pa, 'preArea', '')
 		addAttr(pa, 'blurCb', option.blurCb)
-		addAttr(pa, 'blurSetValueCb', option.blurSetValueCb)
 		addAttr(pa, 'handleRightTdMouseUp', option.handleRightTdMouseUp)
 		addAttr(pa, 'handleHeaderThClick', option.handleHeaderThClick)
 		addAttr(pa, 'handleLeftTdClick', option.handleLeftTdClick)
@@ -473,7 +469,6 @@ class Base {
 		addAttr(pa, 'handleMouseDown', option.handleMouseDown)
 		addAttr(pa, 'responseBodyClick', option.responseBodyClick)
 		addAttr(pa, 'hotKey', option.hotKey)
-		addAttr(pa, 'onPaste', option.onPaste)
 
 	}
 	init(option) {
@@ -484,11 +479,7 @@ class Base {
 		createLeftHeaderCanvas(pa)
 		createRightHeaderCanvas(pa)
 		createTableCanvas(pa)
-		createTextareas(pa, {
-			blurCb: this._blurCb,
-			onCopy: this.onCopy,
-			onPaste: this.handlePaste,
-		})
+		createTextareas(pa, this._blurCb)
 		createToolTip(pa)
 		pa.calcXyRelativeTable = calcXyRelativeTable(this._pa.leftBoxRect.right, this._pa.rightHeaderBoxRect.bottom)
 		pa.record = new Record({})
@@ -650,7 +641,7 @@ class Base {
 	// 		return fn(event)
 	// 	}
 	// }
-	// 事件绑定
+	// 事件绑定 
 	eventBindInit = () => {
 		const pa = this._pa
 		this.eventList()
@@ -707,18 +698,14 @@ class Base {
 		// 	removeEvent(document.body, eventItem.event, eventItem.fn))
 		// })
 	}
-
 	// 垂直滚动条 滚动 回调
 	_verticalScrollCb = (scrollTop) => {
-		if (this.paintEnd) return
-		if (!this.paintEnd) this.paintEnd = true
 		const pa = this._pa
 		pa.scrollTop = scrollTop
 		this.repaintLeft()
 		this.repaintRight()
 		resetTextareaPosi(pa, true)
 		pa.verticalScrollCb && pa.verticalScrollCb(pa.scrollTop)
-		this.paintEnd = null
 	}
 	// 横向滚动条 滚动 回调
 	_horizontalScrollCb = (scrollLeft) => {
@@ -751,7 +738,8 @@ class Base {
 		const width = lastCells.reduce((pre, cur) => {
 			return pre + cur.width
 		}, 0)
-		updateWidthByScroll(pa, width + SCROLL_SIZE)
+
+		updateWidthByScroll(pa, width)
 	}
 	getTextareaText = (target) => {
 		let v = target.innerText;
@@ -763,28 +751,19 @@ class Base {
 	}
 	_blurCb = (target) => {
 		const pa = this._pa;
-		if (!pa.blurCb) return
-		if (pa.formType === '1' && pa.fakeValue) {
-			if (pa.clickLeftCell && pa.showTextarea) {
-				this.getTextareaText(target) && pa.blurCb(pa.clickLeftCell, this.getTextareaText(target))
-				resetTextareaPosi(pa, true, true)
-				pa.shouldClearTextareaValue = false
-				pa.dynaLeftCell = null
-				pa.clickLeftCell = null
-			}
-		} else {
-			if (!pa.blurCb(pa.selectedCell, this.getTextareaText(target))) return
-
-			if (pa.blurSetValueCb && pa.blurSetValueCb(pa.selectedCell, this.getTextareaText(target))) {
-				pa.showTextarea && this.setValue(this.getTextareaText(target), pa.selectedCell.newRowIndex, pa.selectedCell.newColIndex)
-			} else if (target.innerText != pa.selectedCell.value) {
-				pa.showTextarea && this.setValue(this.getTextareaText(target), pa.selectedCell.newRowIndex, pa.selectedCell.newColIndex)
-			}
-			resetTextareaPosi(pa, true, true)
-			pa.shouldClearTextareaValue = false
+		if (pa.blurCb) {
+			if (!pa.blurCb(pa.selectedCell)) return
 		}
+		if (!pa.blurCb) {
+			return
+		}
+		if (target.innerText != pa.selectedCell.value) {
+			pa.showTextarea && this.setValue(this.getTextareaText(target), pa.selectedCell.newRowIndex, pa.selectedCell.newColIndex)
+		}
+		resetTextareaPosi(pa, true, true)
+		pa.shouldClearTextareaValue = false
 	}
-	// 更新横向滚动条
+	// 更新横向滚动条 
 	_updateScrollLeftNode() {
 		const pa = this._pa
 		return pa.scrollBar.updateScrollLeftByNodeSize({
@@ -888,258 +867,10 @@ class Base {
 		})
 		return cell
 	}
-	// 设置单元格属性（sheetTable 用）
-	setCellsAttr = (fullpathArr, attr = {}) => {
-		const pa = this._pa;
-		pa.tableAllData.forEach(row => {
-			row.cells.forEach(cell => {
-				if (fullpathArr.includes(cell.fullpath)) {
-					Object.keys(attr).forEach(k => {
-						cell[k] = attr[k]
-					})
-				}
-			})
-		})
-		pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-		this.repaintRight()
-	}
-
-	textareaInitFocus = () => {
-		const pa = this._pa
-		if (!pa.doubleClick && !pa.showTextarea && this.getSelectedCell()) {
-			pa.textareaInstance.focus(true)
-		}
-	}
-	onCopy = (e) => {
-		if (!this._pa.showTextarea) {
-			e.preventDefault()
-			this.copyTextToClipboard()
-		}
-	}
-	// 复制到剪切板
-	copyTextToClipboard = (text) => {
-		// if (this.copySum === 1) {
-		// 	this.copySum = 0
-		// 	return
-		// }
-		// this.copySum = 1
-
-		if (!text) {
-			const data = this.getSelectedRegion();
-			let copyArray = data.map(item => (item.value))
-			let rowIndexs = data.map(item => item.newRowIndex)
-			let columnIndexs = data.map(item => item.newColIndex)
-			rowIndexs = Array.from(new Set(rowIndexs))
-			columnIndexs = Array.from(new Set(columnIndexs))
-			const areaLen = Math.max(...rowIndexs) - Math.min(...rowIndexs) + 1
-			const areaWidth = Math.max(...columnIndexs) - Math.min(...columnIndexs) + 1
-			let str = '';
-			for (let i = 0; i < areaLen; i++) {
-				for (let j = 0; j < areaWidth; j++) {
-					if (j + 1 === areaWidth) {
-						str = str + copyArray[i * areaWidth + j]
-					} else {
-						str = str + copyArray[i * areaWidth + j] + '\t'
-					}
-				}
-				if (i + 1 === areaLen) {
-					str = str
-				} else {
-					str = str + '\n'
-				}
-			}
-			// add by lynn  在str被写入剪切板后丢失'\r\n'
-			execCommandCopy(str)
-		} else {
-			execCommandCopy(text)
-		}
-	}
-	// 处理剪切板数据 \n 换行   \t 下一个单元格   \r\n 换行
-	getClipboardData = (clipboardData) => {
-		if (clipboardData) {
-			let txt = clipboardData.getData('text');
-			let copyData = new Array();
-			if (!txt) {
-				return false;
-			}
-			while (txt.length > 0) {
-				let c = txt.charAt(txt.length - 1);
-				if (c == '\n' || c == '\r' || c == '\t') {
-					txt = txt.substring(0, txt.length - 1);
-				} else {
-					break;
-				}
-			}
-			let prows = txt.split("\r\n");
-			// add by lynn 还是用一个hack来解决web端和Excel端读取剪切板数据的差异性
-			for (let i = 0; i < prows.length; i++) {
-				copyData[i] = prows[i].split('\t').map(v => {
-					return v.replace(/^\"|\"$/g, '')
-				});
-			}
-			let height = copyData.length || 0,
-				width = copyData[0].length || 0;
-			return {
-				copyData,
-				height,
-				width
-			}
-		}
-	}
-	// 粘贴
-	handlePaste = async (e, data) => {
-		if (this._pa.showTextarea) return
-		let clipboardData, copyData, height, width;
-		let selectedData = this.getSelectedRegion();
-		if (e) {
-			e.stopImmediatePropagation();
-			clipboardData = window.clipboardData || e.clipboardData; // IE || chrome
-			const clipObj = this.getClipboardData(clipboardData);
-			copyData = clipObj.copyData
-			width = clipObj.width
-			height = clipObj.height
-		} else {
-			let rowIndexs = data.map(item => item.newRowIndex);
-			let columnIndexs = data.map(item => item.newColIndex);
-			copyData = [];
-			rowIndexs = Array.from(new Set(rowIndexs));
-			columnIndexs = Array.from(new Set(columnIndexs));
-			height = Math.max(...rowIndexs) - Math.min(...rowIndexs) + 1;
-			width = Math.max(...columnIndexs) - Math.min(...columnIndexs) + 1;
-			for (let j = 0; j < height; j++) {
-				let tempCol = [];
-				for (let i = 0; i < width; i++) {
-					tempCol.push(data[width * j + i].value);
-				}
-				copyData.push(tempCol);
-			}
-		}
-		let tableData = this.getTabelData();
-		if (copyData === undefined || selectedData.length === 0) {
-			console.log('no data copy');
-			return
-		}
-		let singleSelectData = selectedData[0];
-		const { newRowIndex, newColIndex } = singleSelectData;
-		let tableWidth = tableData[0].cells.length || 0;
-		let tableHeight = tableData.length || 0;
-		let realWidth = (tableWidth - newColIndex) < width ? (tableWidth - newColIndex) : width;
-		let realHeight = (tableHeight - newRowIndex) < height ? (tableHeight - newRowIndex) : height;
-		let pickListCells = []; // 下拉列表
-		// 如果复制了单个单元格 全部填充所有单元格
-		if (copyData.length === 1 && copyData[0].length === 1) {
-			for (let i = 0; i < selectedData.length; i++) {
-				let copyItemValue = copyData[0].toString();
-				let origItem = selectedData[i];
-				if (origItem.datatype != '7' && origItem.updated != false) {
-					if (origItem.datatype == '3') {
-						this.setValue(copyItemValue, origItem.newRowIndex, origItem.newColIndex)
-					} else if (origItem.datatype == '5') {
-						this.setValue(copyItemValue, origItem.newRowIndex, origItem.newColIndex)
-						let reg = new RegExp(/^\d{4}(-|\/|年)\d{1,2}(-|\/|月)\d{1,2}(日)$/);
-						if (reg.test(copyItemValue)) {
-							// 日期处理
-							let ds = copyItemValue.replace(/(年|月)+/g, '-').replace(/(日)+/g, '')
-							this.setValue(dateToValue(START_DATE, moment(ds)), origItem.newRowIndex, origItem.newColIndex)
-						}
-					} else if (origItem.datatype == '4') {
-						pickListCells.push({ ...origItem, newCopyValue: copyItemValue })
-					} else {
-						// 千分位处理
-						copyItemValue = copyItemValue.split(',').join('');
-						// 百分比处理
-						if (origItem.datatype === '2') {
-							let value = copyItemValue
-							if (copyItemValue.indexOf('%') > -1) {
-								value = copyItemValue.replace(/%+/g, '');
-							} else {
-								value = copyItemValue * 100;
-							}
-							this.setValue(value, origItem.newRowIndex, origItem.newColIndex)
-						} else {
-							let num = 0;
-							if (origItem.datatype === '1') {
-								if (copyItemValue.indexOf("\n") > 0) {
-									num = Number(copyItemValue.replace(/\n/g, ''))
-									this.setValue(num, origItem.newRowIndex, origItem.newColIndex)
-								} else {
-									if (Number(copyItemValue)) {
-										this.setValue(Number(copyItemValue).toFixed(2), origItem.newRowIndex, origItem.newColIndex)
-									}
-								}
-							} else {
-								if (Number(copyItemValue)) {
-									this.setValue(Number(copyItemValue), origItem.newRowIndex, origItem.newColIndex)
-								}
-							}
-						}
-					}
-				}
-			}
-		} else {
-			for (let i = 0; i < realHeight; i++) {
-				let copyRow = copyData[i];
-				let origRow = tableData[i + newRowIndex].cells;
-				for (let j = 0; j < realWidth; j++) {
-					let copyItemValue = copyRow[j].toString();
-					let origItem = origRow[j + newColIndex];
-					// 0 货币 1 数值 2 百分比 5 日期 6 整数 7 聚合
-					// 3 文本 4 下拉列表 (都为string)
-					if (origItem.datatype != '7' && origItem.updated != false) {
-						if (origItem.datatype == '3') {
-							this.setValue(copyItemValue, origItem.newRowIndex, origItem.newColIndex)
-						} else if (origItem.datatype == '5') {
-							this.setValue(copyItemValue, origItem.newRowIndex, origItem.newColIndex)
-							let reg = new RegExp(/^\d{4}(-|\/|年)\d{1,2}(-|\/|月)\d{1,2}(日)$/);
-							if (reg.test(copyItemValue)) {
-								// 日期处理
-								let ds = copyItemValue.replace(/(年|月)+/g, '-').replace(/(日)+/g, '')
-								this.setValue(dateToValue(START_DATE, moment(ds)), origItem.newRowIndex, origItem.newColIndex)
-							}
-						} else if (origItem.datatype == '4') {
-							pickListCells.push({ ...origItem, newCopyValue: copyItemValue })
-						} else {
-							// 百分比处理
-							if (origItem.datatype === '2') {
-								let value = copyItemValue
-								if (copyItemValue.indexOf('%') > -1) {
-									value = copyItemValue.replace(/%+/g, '');
-								} else {
-									value = copyItemValue * 100;
-								}
-								this.setValue(value, origItem.newRowIndex, origItem.newColIndex)
-							} else {
-								let num = 0;
-								if (origItem.datatype === '1') {
-									if (copyItemValue.indexOf("\n") > 0) {
-										num = Number(copyItemValue.replace(/\n/g, '')).toFixed(2)
-										this.setValue(num, origItem.newRowIndex, origItem.newColIndex)
-									} else {
-										if (Number(copyItemValue)) {
-											this.setValue(Number(copyItemValue), origItem.newRowIndex, origItem.newColIndex)
-										}
-									}
-								} else {
-									if (Number(copyItemValue)) {
-										this.setValue(Number(copyItemValue), origItem.newRowIndex, origItem.newColIndex)
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		// 下拉的请求复制回调函数 add by lynn
-		if (pickListCells.length > 0) {
-			this._pa.validatePickList && this._pa.validatePickList(pickListCells)
-		}
-
-	}
 	removeRows = (rows = [], cb) => {
 		const pa = this._pa
 		if (!pa.leftAllData || pa.leftAllData.length === 0) return
-		//if (!pa.tableAllData || pa.tableAllData.length === 0) return
+		if (!pa.tableAllData || pa.tableAllData.length === 0) return
 		const obj = removeRows(rows, pa.leftAllData, pa.leftInfoMap, true)
 		if (!obj) return
 		pa.area = null
@@ -1163,7 +894,6 @@ class Base {
 		})
 		cb && cb(delTableData)
 		pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-		setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
 		this.repaintLeft()
 		this.repaintRight()
 		this._updateScrollTopNode()
@@ -1171,8 +901,8 @@ class Base {
 	removeCols = (cols = [], cb) => {
 		const pa = this._pa
 		if (!pa.headerAllData || pa.headerAllData.length === 0) return
-		// if (!pa.tableAllData || pa.tableAllData.length === 0) return
-		const obj = removeCols(cols, pa.headerAllData, pa.leftAllData)
+		if (!pa.tableAllData || pa.tableAllData.length === 0) return
+		const obj = removeCols(cols, pa.headerAllData)
 		if (!obj) return
 		pa.area = null
 		pa.zeroCol = true
@@ -1206,7 +936,7 @@ class Base {
 			newData = insertDataToHeader(newData, [], 0);
 			// 重新计算colSpan
 			newData = initHeaderColSpan(newData, headerAllData, setNewXYAndIndex);
-			pa.headerData = newData //headerData
+			pa.headerData = newData //headerData 
 			pa.tableData = setTableData(pa.leftData, pa.headerData, removeBodyCols(cols, pa.tableAllData, (delCell) => {
 				if (!delData[delCell.oldRowIndex]) {
 					delData[delCell.oldRowIndex] = []
@@ -1220,179 +950,13 @@ class Base {
 		pa.headerAllData = headerAllData
 		cb && cb(delData)
 		// pa.tableWidth = obj.width
-		setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
 		this._updateWidth()
 		this.repaintHeader()
 		this.repaintRight()
 		this._updateScrollLeftNode()
 	}
-	addRow = (cell, addCells) => {
-		const pa = this._pa
-		const index = cell.newRowIndex
-		// 行头
-		const dynaCell = {
-			cells: [{
-				...pa.leftAllData[index].cells[0],
-				// id: 'DYNA',
-				id: `DYNA_${+new Date()}`,
-				value: '',
-				childCount: 0,
-				dynaCell: true,
-				updated: true,
-				height: 24
-			}]
-		} || addCells
-		const i = pa.leftAllData.findIndex(v => v.cells[0].id === cell.id)
-		pa.leftAllData = leftDataAddRow(pa.leftAllData, i, [dynaCell])
-		pa.leftData = leftDataAddRow(pa.leftData, index, [dynaCell])
-		// table数据
-		pa.tableAllData = tableAllDataAddRow(pa.tableAllData, i)
-		pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-		// 高度
-		pa.leftHeight = getLeftHeight(pa.leftData)
-		pa.tableHeight = pa.leftHeight
-		// 新增行表头单元格为选中状态
-		this.setSelectedCell(dynaCell.cells[0])
-		pa.dynaLeftCell = dynaCell.cells[0]
-		pa.clickLeftCell = dynaCell.cells[0]
-		this.repaintLeft()
-		this.repaintRight()
-		this._updateScrollTopNode()
-	}
-	// 升级
-	gradeUpRow = (cell) => {
-		const pa = this._pa
-		const upList = [{ cells: [{ ...cell }] }]
-		const upTableList = [pa.tableData[cell.newRowIndex]]
-		let flag = false
-		let parentCell
-		let grandPCell
-		// 向上找他的父节点 以及他父节点的父节点
-		for (let i = cell.newRowIndex - 1; i >= 0; i--) {
-			const leftCell = pa.leftData[i].cells[0]
-			if (!parentCell && leftCell.id === cell.parentId) {
-				parentCell = leftCell
-			}
-			if (parentCell && leftCell.id === parentCell.parentId) {
-				grandPCell = leftCell
-				break;
-			}
-		}
-		const gradeUpRow = (index, allIndex, removeRows) => {
-			upList[0].cells[0].parentId = parentCell.parentId
-			upList[0].cells[0].reallyParentId = parentCell.parentId
-			upList.forEach(v => { v.cells[0].indentCount-- })
-			if (grandPCell) {
-				pa.leftAllData[grandPCell.rowIndex].cells[0].childCount += upList.length
-			}
-			pa.leftAllData = leftDataAddRow(pa.leftAllData, allIndex, upList)
-			pa.leftData = leftDataAddRow(pa.leftData, index, upList)
-			pa.tableAllData = tableAllDataAddRow(pa.tableAllData, allIndex, upTableList)
-			this.removeRows(removeRows)
-		}
-		// 向下找和他父节点同级的节点
-		console.log(JSON.parse(JSON.stringify(pa.leftData)), parentCell);
-		for (let i = cell.newRowIndex + 1; i < pa.leftData.length; i++) {
-			if (parentCell && pa.leftData[i].cells[0].parentId === parentCell.parentId) {
-				flag = true
-				const index = pa.leftAllData.findIndex(v => v.cells[0].id === pa.leftData[i].cells[0].id)
-				gradeUpRow(i, index, upList.map(v => v.cells[0].rowIndex))
-				break;
-			}
-			// 级联变动
-			if (upList.some(v => v.cells[0].id === pa.leftData[i].cells[0].parentId)) {
-				upList.push(JSON.parse(JSON.stringify(pa.leftData[i])))
-				upTableList.push(JSON.parse(JSON.stringify(pa.tableData[i])))
-			}
-		}
-		if (!flag && parentCell) {
-			const index = pa.leftAllData.findIndex(v => v.cells[0].id === cell.id)
-			gradeUpRow(cell.rowIndex, index, upList.map(v => v.cells[0].rowIndex + upList.length))
-			this.removeRows()
-		}
-	}
-	// 降级
-	gradeDownRow = (cell) => {
-		let flag = false
-		const pa = this._pa
-		const downList = [{ cells: [{ ...cell }] }]
-		const downTableList = [pa.tableData[cell.newRowIndex]]
-		const gradeDownRow = (pIndex, index, allIndex, removeRows) => {
-			pa.leftData[pIndex].cells[0].open = true
-			pa.leftData[pIndex].cells[0].childCount += downList.length
-			downList[0].cells[0].parentId = pa.leftData[pIndex].cells[0].id
-			downList[0].cells[0].reallyParentId = pa.leftData[pIndex].cells[0].id
-			downList.forEach(v => { v.cells[0].indentCount++ })
-			pa.leftAllData = leftDataAddRow(pa.leftAllData, allIndex, downList)
-			pa.leftData = leftDataAddRow(pa.leftData, index, downList)
-			pa.tableAllData = tableAllDataAddRow(pa.tableAllData, allIndex, downTableList)
-			this.removeRows(removeRows)
-		}
-		for (let i = cell.newRowIndex + 1; i < pa.leftData.length; i++) {
-			// 第一个成员节点，降级成它相邻下面兄弟节点的子节点
-			if (cell.newRowIndex === 0 || cell.parentId === pa.leftData[cell.newRowIndex - 1].cells[0].id) {
-				flag = true
-				if (pa.leftData[i].cells[0].parentId === cell.parentId) { // 兄弟节点
-					const index = pa.leftAllData.findIndex(v => v.cells[0].id === pa.leftData[i].cells[0].id)
-					gradeDownRow(i, i + 1, index + 1, downList.map(v => v.cells[0].rowIndex))
-					break;
-				}
-			}
-			// 级联变动
-			if (downList.some(v => v.cells[0].id === pa.leftData[i].cells[0].parentId)) {
-				downList.push(JSON.parse(JSON.stringify(pa.leftData[i])))
-				downTableList.push(JSON.parse(JSON.stringify(pa.tableData[i])))
-			}
-		}
-		if (!flag) {
-			// 向上找他的兄弟节点
-			for (let i = cell.newRowIndex - 1; i >= 0; i--) {
-				const leftCell = pa.leftData[i].cells[0]
-				if (leftCell.parentId === cell.parentId) {
-					const index = pa.leftAllData.findIndex(v => v.cells[0].id === cell.id)
-					gradeDownRow(i, cell.rowIndex, index, downList.map(v => v.cells[0].rowIndex + downList.length))
-					break;
-				}
-			}
-		}
-	}
-	openLeftByLevel = (level) => {
-		const pa = this._pa
-		pa.leftData = openLeftByLevel(pa.leftAllData, level)
-		pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-		pa.leftHeight = getLeftHeight(pa.leftData)
-		pa.tableHeight = pa.leftHeight
-		this._updateScrollTopNode()
-		this.repaintLeft()
-		this.repaintRight()
-	}
-	closeLeftByLevel = (level) => {
-		const pa = this._pa
-		pa.leftData = closeLeftByLevel(pa.leftAllData, level)
-		pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-		pa.leftHeight = getLeftHeight(pa.leftData)
-		pa.tableHeight = pa.leftHeight
-		this._updateScrollTopNode()
-		this.repaintLeft()
-		this.repaintRight()
-	}
-	openHeaderByLevel = (level) => {
-		const pa = this._pa
-		pa.headerData = openHeaderByLevel(pa.headerAllData, level)
-		pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-		this._updateWidth()
-		this.repaintHeader()
-		this.repaintRight()
-		this._updateScrollLeftNode()
-	}
-	closeHeaderByLevel = (level) => {
-		const pa = this._pa
-		pa.headerData = closeHeaderByLevel(pa.headerAllData, level)
-		pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-		this._updateWidth()
-		this.repaintHeader()
-		this.repaintRight()
-		this._updateScrollLeftNode()
+	rowCloseAll = () => {
+		this._pa.leftData = closeAllLeft(this._pa.leftAllData)
 	}
 	destroy = () => {
 		this.eventUnBind()

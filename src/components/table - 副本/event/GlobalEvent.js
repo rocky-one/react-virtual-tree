@@ -52,31 +52,15 @@ class GlobalEvent {
         }, {
             event: 'mouseup',
             fn: this.documentBodyMouseup
-        },
-            // {
-            //     event: 'copy',
-            //     fn: this.documentCopy
-            // },{
-            //     event: 'paste',
-            //     fn: this.documentPaste
-            // }
-        ]
+        }]
         this.documentEvents.forEach(eventItem => {
             addEvent(document.body, eventItem.event, eventItem.fn)
         })
     }
     setTable = (tableIns) => {
         //if (!this.tableIns || this.tableIns._pa.key != tableIns._pa.key) {
-        this.tableIns = tableIns
+            this.tableIns = tableIns
         //}
-    }
-    documentCopy = (e) => {
-        if (!this.tableIns || this.tableIns._pa.showTextarea) return
-        this.tableIns.copyTextToClipboard()
-    }
-    documentPaste = (e) => {
-        if (!this.tableIns || this.tableIns._pa.showTextarea) return
-        this.tableIns.handlePaste(e)
     }
     documentBodyMousemove = (e) => {
         const {
@@ -105,6 +89,7 @@ class GlobalEvent {
                 return
             }
         }
+
         // 头部拖拽
         headerDragMove(pa, pageX, () => {
             setDomCss(pa.rightHeaderBox, {
@@ -117,7 +102,6 @@ class GlobalEvent {
         leftDragMove(pa, pageY, () => {
             setDomCss(pa.leftBox, {
                 cursor: 'row-resize',
-                zIndex: 4
             })
             hideToolTip(pa)
         })
@@ -134,7 +118,7 @@ class GlobalEvent {
     documentBodyMouseup = (e) => {
         if (!this.tableIns) return
         const pa = this.tableIns._pa
-        if (!pa) return
+        if(!pa) return
         pa.mousedown = false
         pa.exceedBound = false
         pa.autoScrollStart = false
@@ -199,7 +183,7 @@ class GlobalEvent {
                     }
                 }
             }
-            //setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
+            setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
             // 更新宽高
             this.tableIns._updateHeight()
             // 更新宽度
@@ -222,7 +206,6 @@ class GlobalEvent {
         if (pa.leftDragLineDown) {
             setDomCss(pa.leftBox, {
                 cursor: 'default',
-                zIndex: 2
             })
             const dragCell = pa.leftDragCell
             const distanceObj = getLeftDistance(pa.leftDistance, dragCell, pa.leftData)

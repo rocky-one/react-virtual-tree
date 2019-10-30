@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { initLeftData, initHeaderData } from './handleWorkbookData/initData'
 import Table from './Table'
+import {formatValueMap} from './utils/format' 
 
 export const cellType = {
     '0': 'number',
@@ -22,6 +23,7 @@ export default class TableDemo extends React.Component {
         const {
             width,
             height,
+            formCellInfo={},
             formCellData,
         } = this.props;
         const leftAllData = initLeftData(formCellData.rowCells);
@@ -33,11 +35,13 @@ export default class TableDemo extends React.Component {
             ele: document.getElementById(`tableDemo`),
             width,
             height,
+            //childFieldName: 'childCount', //子节点字段名称
             headerData: headerAllData,
             leftData: leftAllData,
             tableData: tableAllData,
-            rowOpenLevel: Infinity,
-            colOpenLevel: Infinity,
+            // open: true,
+            rowOpen:true,
+            colOpen: true,
             fakeValue: this.props.patternStatus === 2,
 
             handleLeftOpen: (cell) => {
@@ -216,58 +220,135 @@ export default class TableDemo extends React.Component {
                 // console.log(cell)
             },
             // 数据区域 滑过时是否显示toolTip 返回一个字符串 否则返回false
-            // toolTipRender: (cell) => {
-            //     let html = '';
-            //     if (cell.formatValue != '' && cell.formatValue != 0) {
-            //         html += `<p style="margin:0;padding: 3px 10px;text-algin:left;font-size: 12px;">${cell.formatValue}</p>`;
-            //     }
-            //     // 校验规则
-            //     if (cell.validateRules) {
-            //         const res = cell.validateRules.message;
-            //         if (res && res.length > 0) {
-            //             html += `<p style="margin:0;padding: 3px 10px;text-algin:left;font-size: 12px;">校验提示: </p>`;
-            //         }
-            //         res.forEach(msa => {
-            //             if (msa) {
-            //                 html += `<p style="margin:0;padding: 3px 10px;text-algin:left;font-size: 12px;">${msa}</p>`
-            //             }
-            //         })
-            //     }
-            //     if (html === '') {
-            //         return false
-            //     }
-            //     return html;
-            // },
-            // // 左侧toolTip
-            // leftToolTipRender: (cell) => {
-            //     let html = `<p style="margin:0;padding: 3px 10px;text-align:center;font-size: 12px;">${cell.description || cell.value}</p>`
-            //     return html;
-            // },
-            // // 头部toolTip
-            // headerToolTipRender: (cell) => {
-            //     let html = `<p style="margin:0;padding: 3px 10px;text-align:center;font-size: 12px;">${cell.description || cell.value}</p>`
-            //     return html;
-            // },
+            toolTipRender: (cell) => {
+                let html = '';
+                if (cell.formatValue != '' && cell.formatValue != 0) {
+                    html += `<p style="margin:0;padding: 3px 10px;text-algin:left;font-size: 12px;">${cell.formatValue}</p>`;
+                }
+                // 校验规则
+                if (cell.validateRules) {
+                    const res = cell.validateRules.message;
+                    if (res && res.length > 0) {
+                        html += `<p style="margin:0;padding: 3px 10px;text-algin:left;font-size: 12px;">校验提示: </p>`;
+                    }
+                    res.forEach(msa => {
+                        if (msa) {
+                            html += `<p style="margin:0;padding: 3px 10px;text-algin:left;font-size: 12px;">${msa}</p>`
+                        }
+                    })
+                }
+                if (html === '') {
+                    return false
+                }
+                return html;
+            },
+            // 左侧toolTip
+            leftToolTipRender: (cell) => {
+                let html = `<p style="margin:0;padding: 3px 10px;text-align:center;font-size: 12px;">${cell.description || cell.value}</p>`
+                return html;
+            },
+            // 头部toolTip
+            headerToolTipRender: (cell) => {
+                let html = `<p style="margin:0;padding: 3px 10px;text-align:center;font-size: 12px;">${cell.description || cell.value}</p>`
+                return html;
+            },
             // 下拉
             handleClickDropDown: (cell) => {
+                if (cell.datatype === '4' && cell.updated) {
+                    this.sign = true;
+                    this.getDropDownlist(cell)
+                    return false
+                }
             },
             blurCb: (cell) => {
+                if (!cell || !cell.updated || cell.cellReadOnly) {
+                    return false
+                }
+                if (cell.datatype === '4' || cell.datatype === '5') {
+                    return false
+                }
+                return true
             },
+            // 格式化value 根据td type
+            format: formatValueMap(),
+
             handleRightTdMouseUp: () => {
 
             },
             handleHeaderThClick: (cell) => {
-               
+                pasteEventIns.init({
+                    tableInstance: this.tableInstance
+                })
             },
             handleLeftTdClick: (cell) => {
-               
+                pasteEventIns.init({
+                    tableInstance: this.tableInstance
+                })
             },
             setValueBefore: (cell) => {
-                
+                if (cell.datatype === '2') {
+                    if (checkIsNum(cell.value)) {
+                        cell.value = strip(cell.value / 100)
+                    }
+                }
+                if (cell.datatype === '6') {
+                    if (checkIsNum(cell.value)) {
+                        cell.value = Math.round(cell.value)
+                    }
+                }
             },
             // 设置value之后执行 一般用于校验输入值是否合法
             setValueAfter: (cell, beforeVal) => {
 
+                if (cell.value != beforeVal) {
+                    cell.backgroundColor = '#90EE90' // 修改过背景色
+                    cell.isEdit = true
+                }
+                if (cell.datatype === '5' || cell.datatype === '4' || cell.datatype === '3') {
+                    return
+                }
+                if (cell.value === '') {
+                    if (this.formatErrorMap[`${cell.rowIndex}${cell.columnIndex}`]) {
+                        delete this.formatErrorMap[`${cell.rowIndex}${cell.columnIndex}`]
+                    }
+                    return
+                }
+                // 有相应的格式
+                const typeNum = cellTypeInverseMap[cell.cellType]
+                if (typeNum) {
+                    const regs = textValueReg[typeNum];
+
+                    if (regs) {
+                        let match = false;
+                        for (let j = 0; j < regs.length; j++) {
+                            const reg = new RegExp(regs[j]);
+                            const value = (cell.value).toString().replace(/[\r\n]/g, "");
+                            if (reg.test(value)) {
+                                match = true;
+                                if (this.formatErrorMap[`${cell.rowIndex}${cell.columnIndex}`]) {
+                                    delete this.formatErrorMap[`${cell.rowIndex}${cell.columnIndex}`]
+                                }
+                                break;
+                            }
+                        }
+                        // 输入格式错误
+                        if (!match) {
+                            cell.backgroundColor = '#FF4500'
+                            let formatStr = textFormat[typeNum][0]
+                            // 文本格式化 需求变更 暂时不需要此功能
+                            // 是文本日期类型
+                            // if (typeNum === '5') {
+                            //     let i = textFormat[typeNum].indexOf(cell.formatString);
+                            //     formatStr = textFormat[typeNum][i]
+                            // }
+                            this.formatErrorMap[`${cell.rowIndex}${cell.columnIndex}`] = true;
+                            messageAlert(
+                                '请输入正确格式:' + formatStr,
+                                "error"
+                            )
+                        }
+                    }
+                }
             }
         })
         

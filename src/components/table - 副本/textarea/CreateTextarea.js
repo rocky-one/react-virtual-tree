@@ -9,8 +9,6 @@ class CreateTextarea {
     constructor(option) {
         this.instance = null
         this.option = option || {}
-        this.onCopy = option.onCopy
-        this.onPaste = option.onPaste
         this.init()
     }
     init = () => {
@@ -41,6 +39,7 @@ class CreateTextarea {
             overflow: 'hidden',
             wordBreak: 'normal',
             textAlign: 'left',
+            fontSize: '12px',
             width: '100%',
             height: '100%',
             float: 'none'
@@ -56,8 +55,6 @@ class CreateTextarea {
         const con = this.outerConainer = this.option.container || document.body
         con.appendChild(this.container)
         this.textarea.addEventListener('blur', this._blur, false)
-        this.textarea.addEventListener('copy', this.onCopy)
-        this.textarea.addEventListener('paste', this.onPaste)
     }
     _blur = (event) => {
         this.option.blurCb(event.target)
@@ -68,30 +65,31 @@ class CreateTextarea {
     setValue = (value = '') => {
         this.textarea.innerText = value
     }
-    focus = (checkAll = false) => {
+    focus = () => {
+        // setTimeout(() => {
+        //     let srcObj = this.textarea;
+        //     let selection = window.getSelection();
+        //     let range = document.createRange();
+        //     range.selectNodeContents(srcObj);
+        //     selection.removeAllRanges();
+        //     selection.addRange(range);
+        //     range.setStart(srcObj, 0);
+        //     range.setEnd(srcObj, 0);
+
+        // })
         setTimeout(() => {
             if (window.getSelection) {//ie11 10 9 ff safari
                 this.textarea.focus()
                 var range = window.getSelection();//创建range
                 range.selectAllChildren(this.textarea);//range 选择obj下所有子内容
                 range.collapseToEnd();//光标移至最后
-                if (checkAll) {
-                    var range = document.createRange();
-                    range.selectNodeContents(this.textarea);
-                    window.getSelection().removeAllRanges();
-                    window.getSelection().addRange(range);
-                }
-            } else if (document.selection) {//ie10 9 8 7 6 5
+            }
+            else if (document.selection) {//ie10 9 8 7 6 5
                 var range = document.selection.createRange();//创建选择对象
                 //var range = document.body.createTextRange();
                 range.moveToElementText(this.textarea);//range定位到obj
                 range.collapse(false);//光标移至最后
                 range.select();
-                if (checkAll) {
-                    var range = document.body.createTextRange();
-                    range.moveToElementText(this.textarea);
-                    range.select();
-                }
             }
         }, 0)
     }
@@ -106,17 +104,10 @@ class CreateTextarea {
         const height = style.scrollTop - style.top > 0
             ? style.height - (style.scrollTop - style.top) - 5
             : heightCutFour
-        if (style.left >= 0) {
-            this.container.style.top = `${top + 3}px`
-            this.container.style.left = `${left + 3}px`
-            this.container.style.width = `${width}px`
-            this.container.style.height = `${height}px`
-        } else {
-            this.container.style.top = `${top + 3}px`
-            this.container.style.left = `${style.left + 3}px`
-            this.container.style.width = `${style.width - 5}px`
-            this.container.style.height = `${style.height - 5}px`
-        }
+        this.container.style.top = `${top + 3}px`
+        this.container.style.left = `${left + 3}px`
+        this.container.style.width = `${width}px`
+        this.container.style.height = `${height}px`
 
         if (width === 0) {
             this.container.style.border = null

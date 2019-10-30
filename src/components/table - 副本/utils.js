@@ -424,8 +424,8 @@ export const findRowIndex = (tableData = [], y) => {
     // 寻找开始行
     let rowIndex = -1,
         len = tableData.length
-    if (len === 0) return rowIndex
-    for (let i = 0; i < len; i++) {
+    if(len === 0) return rowIndex
+    for (let i =0; i < len; i++) {
         const row = tableData[i]
         const cells = row.cells
         if (!cells || cells.length === 0) return rowIndex
@@ -454,17 +454,17 @@ export const findRowIndex = (tableData = [], y) => {
  */
 export const findColIndex = (tableData, x) => {
     let cells = tableData.length > 0 ? tableData[0].cells : [],
-        // width = cells.length > 0 ? (cells[0].width || ROW_WIDTH) : ROW_WIDTH,
-        // j = calcStartIndex(x, width),
+        width = cells.length > 0 ? (cells[0].width || ROW_WIDTH) : ROW_WIDTH,
+        j = calcStartIndex(x, width),
         len = cells.length,
         colIndex = -1
-    for (let j = 0; j < len; j++) {
+    for (; j < len; j++) {
         const cell = cells[j]
-        // if (cell.x > x) {
-        //     j -= 4
-        //     j = j < 0 ? 0 : j
-        //     continue
-        // }
+        if (cell.x > x) {
+            j -= 4
+            j = j < 0 ? 0 : j
+            continue
+        }
         if (cell.x <= x) {
             // 确定列
             if (cell.x + cell.width >= x) {

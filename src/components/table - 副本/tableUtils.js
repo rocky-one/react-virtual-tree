@@ -1,17 +1,17 @@
 import {
 	getSelectedTableCells,
-	findRowIndex,
+	findRowIndex, 
 	findColIndex,
 } from './utils'
 import {
-	getPointStartRowIndex,
-	getPointEndColIndex,
-	getPointStartColIndex,
-	getPointEndRowIndex,
+    getPointStartRowIndex,
+    getPointEndColIndex,
+    getPointStartColIndex,
+    getPointEndRowIndex,
 } from './utils/point'
 // 更新textarea位置
-export function resetTextareaPosi(pa = {}, init, blur = false) {
-	const cell = pa.formType === '1' && pa.fakeValue ? pa.clickLeftCell : pa.selectedCell
+export function resetTextareaPosi(pa = {}, init, blur=false) {
+	const cell = pa.selectedCell
 	let info = {}
 	if (!cell || init || !cell.updated || cell.cellReadOnly) {
 		info = {
@@ -26,7 +26,7 @@ export function resetTextareaPosi(pa = {}, init, blur = false) {
 		info = {
 			width: cell.width,
 			height: cell.height,
-			left: cell.dynaCell ? -pa.leftWidth : cell.x,
+			left: cell.x,
 			top: cell.y,
 			scrollLeft: pa.scrollLeft,
 			scrollTop: pa.scrollTop
@@ -130,7 +130,6 @@ export function getCellByMouseOver(pa, x, y, tableData) {
 	//const inTableXy = pa.calcXyRelativeTable(x, y, pa.scrollLeft, pa.scrollTop)
 	const startRowIndex = findRowIndex(tableData, y)
 	const startColIndex = findColIndex(tableData, x)
-	if (startRowIndex < 0 || startColIndex < 0) return false
 	return tableData[startRowIndex].cells[startColIndex]
 }
 
@@ -241,38 +240,38 @@ export function autoScroll(pa) {
  * @desc 键盘移动选中项时，自动滚入可视区
  */
 export function ScrollToView(pa) {
-	let newRowIndex = pa.selectedCell.newRowIndex
-	let newColIndex = pa.selectedCell.newColIndex
-	let scrollLeft = pa.scrollLeft
-	let scrollTop = pa.scrollTop
-	if (pa.scrollBar.hasHScroll()) {
-		const endColIndex = getPointEndColIndex(pa.tableData, pa.rightSurplusWidth, scrollLeft, 'newColIndex')
-		if (newColIndex > endColIndex) {
-			scrollLeft = scrollLeft + (newColIndex - endColIndex) * pa.selectedCell.width
-			if (scrollLeft > pa.scrollBar.maxScrollLeft) {
-				pa.scrollLeft = pa.scrollBar.maxScrollLeft
-			} else {
-				pa.scrollLeft = scrollLeft
-			}
-		}
-		if (newColIndex < getPointStartColIndex(pa.tableData, scrollLeft, 'newColIndex')) {
-			pa.scrollLeft = pa.selectedCell.width * newColIndex
-		}
-		pa.scrollBar.hScrollChangeUpdate(pa.scrollLeft)
-	}
-	if (pa.scrollBar.hasVScroll()) {
-		const endRowIndex = getPointEndRowIndex(pa.tableData, pa.tableBodyHeight, scrollTop, 'rowIndex')
-		if (newRowIndex > endRowIndex) {
-			scrollTop = scrollTop + (newRowIndex - endRowIndex) * pa.selectedCell.height
-			if (scrollTop > pa.scrollBar.maxScrollTop) {
-				pa.scrollTop = pa.scrollBar.maxScrollTop
-			} else {
-				pa.scrollTop = scrollTop
-			}
-		}
-		if (newRowIndex < getPointStartRowIndex(pa.tableData, scrollTop, 'rowIndex')) {
-			pa.scrollTop = pa.selectedCell.height * newRowIndex
-		}
-		pa.scrollBar.vScrollChangeUpdate(pa.scrollTop)
-	}
+    let newRowIndex = pa.selectedCell.newRowIndex
+    let newColIndex = pa.selectedCell.newColIndex
+    let scrollLeft = pa.scrollLeft
+    let scrollTop = pa.scrollTop
+    if (pa.scrollBar.hasHScroll()) {
+    	const endColIndex = getPointEndColIndex(pa.tableData, pa.rightSurplusWidth, scrollLeft, 'newColIndex')
+        if (newColIndex > endColIndex) {
+            scrollLeft = scrollLeft + (newColIndex - endColIndex) * pa.selectedCell.width
+            if (scrollLeft > pa.scrollBar.maxScrollLeft) {
+                pa.scrollLeft = pa.scrollBar.maxScrollLeft
+            } else {
+                pa.scrollLeft = scrollLeft
+            }
+        }
+        if (newColIndex < getPointStartColIndex(pa.tableData, scrollLeft, 'newColIndex')) {
+            pa.scrollLeft = pa.selectedCell.width * newColIndex
+        }
+        pa.scrollBar.hScrollChangeUpdate(pa.scrollLeft)
+    }
+    if (pa.scrollBar.hasVScroll()) {
+    	const endRowIndex = getPointEndRowIndex(pa.tableData, pa.tableBodyHeight, scrollTop, 'rowIndex')
+        if (newRowIndex > endRowIndex) {
+            scrollTop = scrollTop + (newRowIndex - endRowIndex) * pa.selectedCell.height
+            if (scrollTop > pa.scrollBar.maxScrollTop) {
+                pa.scrollTop = pa.scrollBar.maxScrollTop
+            } else {
+                pa.scrollTop = scrollTop
+            }
+        }
+        if (newRowIndex < getPointStartRowIndex(pa.tableData, scrollTop, 'rowIndex')) {
+            pa.scrollTop = pa.selectedCell.height * newRowIndex
+        }
+        pa.scrollBar.vScrollChangeUpdate(pa.scrollTop)
+    }
 }

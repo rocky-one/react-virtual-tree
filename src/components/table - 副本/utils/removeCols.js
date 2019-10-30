@@ -73,16 +73,15 @@ function updateParentId(delCell, data) {
 			}
 			if (cells[i].parentId === delCell.id) {
 				cells[i].parentId = newParentId
-				
-				// newParentId = cells[i].id
-			} 
-			cells[i].indentCount -= 1
-			// else if (cells[i].parentId === newParentId) {
-			// 	cells[i].indentCount -= 1
-			// 	newParentId = cells[i].id
-			// }
+				cells[i].indentCount -= 1
+				newParentId = cells[i].id
+			} else if (cells[i].parentId === newParentId) {
+				cells[i].indentCount -= 1
+				newParentId = cells[i].id
+			}
 		}
 	}
+
 	if (delCell.parentId) {
 		let pId = delCell.parentId
 		const cells = data[delCell.rowIndex].cells
@@ -240,12 +239,8 @@ function updateIndex(data = []) {
 }
 
 // 移除列
-export const removeCols = (cols = [], headerData, leftAllData = []) => {
-	if (cols.length === 0 && leftAllData.length === 0) return {
-		headerData: [],
-		headerAllData: [],
-		width: 0
-	}
+export const removeCols = (cols = [], headerData) => {
+	if (cols.length === 0) return false
 	headerData = updateColSpan(cols, headerData)
 	headerData = removeHasDelete(headerData, updateParentId)
 	headerData = updateLink(headerData)

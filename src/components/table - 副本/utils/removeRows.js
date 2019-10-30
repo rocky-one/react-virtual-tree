@@ -37,9 +37,6 @@ function removeRowHasDelete(data = []) {
                         for (let t = 0; t < cs.length; t++) {
                             if (cells[j].columnIndex === cs[t].columnIndex) {
                                 cs[t].indentCount -= 1
-                                if (cs[t].indentCount <= 0) {
-                                    cs[t].indentCount = 0
-                                }
                                 if (cs[t].indentCount === cells[j].indentCount) {
                                     cs[t].parentId = cells[j].parentId
                                 }
@@ -50,9 +47,6 @@ function removeRowHasDelete(data = []) {
                 }
                 findRowParent(cells[j], i, data, (parentCell) => {
                     parentCell.childCount -= 1
-                    if (parentCell.childCount <= 0) {
-                        parentCell.childCount = 0
-                    }
                 })
 
                 cells.splice(j, 1)

@@ -11,20 +11,16 @@ import {
 } from '../utils'
 
 import {
-    onExpandRowNew,
-} from '../utils/onExpandRow'
+    openTr
+} from '../utils/handleLeftData'
 
 import {
-    onExpandRow,
-} from '../utils/handleLeftData'
-import {
-    onExpandCol,
+    openHeaderTr,
     getCellBeforeColSpanSum,
 } from '../utils/handleHeaderData'
 
 import {
-    setTableData,
-    getViewTableData
+    setTableData
 } from '../utils/handleTableData'
 
 import {
@@ -79,77 +75,39 @@ class EventCore {
         // initKey(pa.key, globalEventsMap)
     }
     leftClick = (e) => {
-        // const x = e.offsetX,
-        //     y = e.offsetY,
-        const pa = this.tableIns._pa,
-            leftCell = pa.hoverCell
-        //(pa.tableHeight >= y && y > 0) ? getSelectedLeftCell(pa.leftData, pa.scrollTop, x, y) : null
-        if (!leftCell) return
+        const x = e.offsetX,
+            y = e.offsetY,
+            pa = this.tableIns._pa,
+            leftCell = (pa.tableHeight >= y && y > 0) ? getSelectedLeftCell(pa.leftData, pa.scrollTop, x, y) : null
         // 在左侧cell区域内
-        // 是展开图标区域
-        if (pa.arrowCanClick && isIntraArea(leftCell.cell.arrowXy, e.offsetX, e.offsetY)) {
+        if (leftCell) {
+            // initKey(pa.key, globalEventsMap)
+            // 是展开图标区域
+            if (pa.arrowCanClick && isIntraArea(leftCell.cell.arrowXy, e.offsetX, e.offsetY)) {
 
-            this.tableIns.setSelectedCell(null)
-            pa.dynaLeftCell = null
-            pa.clickLeftCell = null
-            let t = new Date()
-            // 计算数据
-            const expandObj = onExpandRowNew({
-                cell: leftCell.cell,
-                leftData: pa.leftData,
-                headerData: pa.headerData,
-                leftAllData: pa.leftAllData,
-                tableData: pa.tableData,
-                tableAllData: pa.tableAllData,
-                rowViewTotal: pa.rowViewTotal,
-            })
-            console.log('计算耗时: ', new Date()-t)
-            pa.leftData = expandObj.leftData
-            pa.tableData = expandObj.tableData
-            // pa.leftData = onExpandRow(leftCell.cell, pa.leftData, pa.leftAllData, pa.rowViewTotal)
-            // pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-            // setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
-            // 更新高
-            this.tableIns._updateHeight()
-            // 更新滚动条
-            this.tableIns._updateScrollTopNode()
-            // 绘制
-            this.tableIns.repaintLeft()
-            this.tableIns.repaintRight()
+                this.tableIns.setSelectedCell(null)
+                // 计算数据
+                pa.leftData = openTr(leftCell.cell, pa.leftData, pa.leftAllData)
+                // 可优化 根据rowIndex 只计算新加入行的列 ..
+                pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
+                setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
+                // 更新高
+                this.tableIns._updateHeight()
+                // 更新滚动条
+                this.tableIns._updateScrollTopNode()
+                // 绘制
+                this.tableIns.repaintLeft()
+                this.tableIns.repaintRight()
 
-            // 外部回调
-            pa.handleLeftOpen && pa.handleLeftOpen(leftCell.cell)
-            // 输入框
-            resetTextareaPosi(pa)
+                // 外部回调
+                pa.handleLeftOpen && pa.handleLeftOpen(leftCell.cell)
+                // 输入框
+                resetTextareaPosi(pa)
 
-            // 选中行
-        } else {
-            pa.clickHeaderCell = null
-            pa.clickLeftCell = leftCell.cell
-            if (pa.formType === '1' && pa.fakeValue) {
-                pa.selectedCell = leftCell.cell
-                if (pa.dynaLeftCell && pa.dynaLeftCell.newRowIndex === pa.clickLeftCell.newRowIndex) {
-                    resetTextareaPosi(pa)
-                } else {
-                    pa.dynaLeftCell = null
-                    resetTextareaPosi(pa, true, true)
-                    if (leftCell.cell.dynaCell && leftCell.cell.updated) {
-                        pa.dynaLeftCell = leftCell.cell
-                    }
-                    // 绘制行头选中状态
-                    pa.area = {
-                        endColIndex: leftCell.cell.newColIndex,
-                        endRowIndex: leftCell.cell.newRowIndex,
-                        startColIndex: leftCell.cell.newColIndex,
-                        startRowIndex: leftCell.cell.newRowIndex,
-                    }
-                    this.tableIns.setSelectedCell({
-                        ...leftCell.cell,
-                        value: leftCell.cell.id === 'DYNA' ? '' : leftCell.cell.value
-                    })
-                    this.tableIns.repaintLeft()
-                }
+                // 选中行
             } else {
+                pa.clickHeaderCell = null
+                pa.clickLeftCell = leftCell.cell
                 pa.area = setAreaByLeftCell(leftCell.cell, getColSum(pa.tableData) - 1)
                 this.tableIns.setSelectedCell(getFirstCellByArea(pa.area, pa.tableData))
                 this.tableIns.repaintRight()
@@ -197,7 +155,7 @@ class EventCore {
             y = e.offsetY,
             leftCell = (pa.tableHeight >= y && y > 0) ? getSelectedLeftCell(pa.leftData, pa.scrollTop, x, y) : null,
             leftDragCell = (pa.tableHeight >= y && y > 0) ? getDragLeftCell(pa.leftData, pa.scrollTop, x, y) : null
-        pa.handleMouseMoveOnLeft && pa.handleMouseMoveOnLeft(leftCell)
+
         if (leftCell && pa.leftToolTipRender) {
             const html = pa.leftToolTipRender(leftCell.cell)
             if (!html) return
@@ -223,42 +181,29 @@ class EventCore {
             createLeftDragColLine(pa, pa.height)
             updateLeftDragColLinePosition(pa.leftDragColLine, x)
         }
-
-        pa.hoverCell = leftCell
     }
 
     leftMouseleave = (e) => {
         const pa = this.tableIns._pa
         pa.leftToolTipRender && hideToolTip(pa)
-        pa.handleLeftMouseleave && pa.handleLeftMouseleave()
-        pa.hoverCell = null
     }
 
     headerClick = (e) => {
         const pa = this.tableIns._pa
         if (pa.headerDragLineDown) return
-        // let x = e.offsetX,
-        //     y = e.offsetY,
-        let headerCell = pa.hoverCell //getSelectedHeaderCell(pa.headerData, pa.scrollLeft, x, y)
+        let x = e.offsetX,
+            y = e.offsetY,
+            headerCell = getSelectedHeaderCell(pa.headerData, pa.scrollLeft, x, y)
         // 展开收起
         if (headerCell.cell) {
             const arrowXy = headerCell.cell.arrowXy
             // initKey(pa.key, globalEventsMap)
             if (pa.arrowCanClick && isIntraArea(arrowXy, e.offsetX, e.offsetY)) {
                 this.tableIns.setSelectedCell(null)
-                let t = new Date()
-                pa.headerData = onExpandCol(headerCell.cell, pa.headerData, pa.headerAllData)
-                console.log('头部计算耗时: ',new Date() - t)
-                let t2 = new Date()
-                pa.tableData = getViewTableData({
-                    leftData: pa.leftData, 
-                    headerData:pa.headerData, 
-                    tableAllData: pa.tableAllData, 
-                    rowViewEndIndex: pa.rowViewEndIndex
-                })
-                console.log('头部数据区域计算耗时: ',new Date() - t2)
-                //pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
-                // setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
+                pa.headerData = openHeaderTr(headerCell.cell, pa.headerData, pa.headerAllData)
+                // 可优化 根据rowIndex 只计算新加入行的列 ..
+                pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
+                setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
                 // 更新宽度
                 this.tableIns._updateWidth()
                 this.tableIns._updateHeight()
@@ -330,7 +275,6 @@ class EventCore {
             createHeaderDragLine(pa, pa.height)
             updateDragLinePosition(pa.headerDragLine, x)
         }
-        pa.hoverCell = headerCell
     }
 
     headerMouseleave = (e) => {
@@ -347,7 +291,7 @@ class EventCore {
         const dropDownXy = pa.selectedCell.dropDownXy
         if (dropDownXy) {
             if (isIntraArea(dropDownXy, e.offsetX, e.offsetY)) {
-                pa.handleClickDropDown && pa.handleClickDropDown(pa.selectedCell, e.pageX, e.pageY)
+                pa.handleClickDropDown && pa.handleClickDropDown(pa.selectedCell)
             }
         }
     }
@@ -449,7 +393,7 @@ class EventCore {
         pa.exceedBound && clearAutoScroll(pa)
         pa.exceedBound = false
         pa.autoScrollStart = false
-        if(pa.scrollBar.getMouseDownStatus()) return
+
         if (!pa.mousedown) {
             if (pa.handleMouseMove || pa.toolTip) {
                 const startRowIndex = findRowIndex(pa.tableData, offsetY),
@@ -463,7 +407,6 @@ class EventCore {
 
                 if (inCell(area)) {
                     const cell = getCellByMouseOver(pa, offsetX + pa.scrollLeft, offsetY + pa.scrollTop, pa.tableData)
-                    if(!cell) return
                     pa.handleMouseMove && pa.handleMouseMove(cell)
 
                     if (pa.toolTipRender) {

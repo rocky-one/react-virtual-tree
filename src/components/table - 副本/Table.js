@@ -18,51 +18,33 @@ import {
 import {
 	LINE_WIDTH,
 	COLOR,
-	BG_COLOR_TITLE,
 	ROW_HEIGHT,
 	BORDER_COLOR,
-	DYNA_COLOR,
-	SCROLL_SIZE,
 } from './tableConst'
 // import {
 // 	setTableData,
 // 	initTableAllDataOldIndex,
-// } from './utils/handleTableData'
+
 
 class Table extends Base {
 	constructor(option = {}) {
 		super(option)
+		this.paintLeftIng = false
+		this.paintHeaderIng = false
+		this.paintTableIng = false
 		this.paintLeft()
 		this.paintHeader()
 		this.paintTable()
 	}
-
 	paintLeft = () => {
-		let t = new Date()
 		const pa = this._pa,
 			scrollTop = pa.scrollTop,
 			leftData = pa.leftData
 
 		pa.leftContext.lineWidth = LINE_WIDTH
 		pa.leftContext.font = `${pa.font}px Arial`
-
-		pa.leftContext.beginPath()
-		pa.leftContext.fillStyle = '#F8F8F8'
-
-		let h = pa.leftHeight
-		if (pa.scrollBar.hasHScroll()) {
-			if (!pa.scrollBar.hasVScroll()) {
-				h -= SCROLL_SIZE
-			}
-		} else {
-			h -= SCROLL_SIZE
-		}
-		pa.leftContext.fillRect(0, 0, pa.leftWidth, h)
-		pa.leftContext.fill()
 		pa.paintLeftEnd = 0
-		let sign = false
-		//开始位置从0开始计算 后面需要优化这个开始位置的索引 减少计算
-		let i = 0 
+		let i = 0 //开始位置从0开始计算 后面需要优化这个开始位置的索引 减少计算
 		for (let len = leftData.length; i < len; i++) {
 			const leftCells = leftData[i].cells || []
 			for (let j = 0, len = leftCells.length; j < len; j++) {
@@ -79,24 +61,16 @@ class Table extends Base {
 				if (y - scrollTop >= pa.tableBodyHeight) {
 					pa.paintLeftEnd++
 					if (pa.paintLeftEnd === pa.leftInfo.length) {
-						this.textareaInitFocus()
-						pa.clickLeftCell && this.paintLeftAreaBorder()
 						return
 					}
 				}
-				if(!sign) {
-					sign = true
-					pa.leftPrePointIndex = i
-				}
-			console.log(i,'ii')
 				pa.paintLeftCellCb && pa.paintLeftCellCb(cell)
 				let curWid = cell.width
 				let endX = x + curWid
 				let endY = y + hei
-				// 横线 this._pa.ratio
+				// 横线
 				pa.leftContext.strokeStyle = BORDER_COLOR
 				pa.leftContext.beginPath()
-
 				pa.leftContext.moveTo(x + 0.5, endY + 0.5)
 				pa.leftContext.lineTo(endX + 0.5, endY + 0.5)
 				// 竖线
@@ -105,8 +79,8 @@ class Table extends Base {
 				pa.leftContext.stroke()
 				pa.leftContext.closePath()
 
-				//this.paintCellBgColor(pa.leftContext, x + 1, y + 1, cell.width - 2, cell.height - 1, cell.backgroundColor)
-				pa.leftContext.fillStyle = cell.dynaCell ? DYNA_COLOR : COLOR
+				this.paintCellBgColor(pa.leftContext, x + 1, y + 1, cell.width - 2, cell.height - 1, cell.backgroundColor)
+				pa.leftContext.fillStyle = COLOR
 				let indent = (cell.indentCount || 0) * 10
 				const textInfo = ellipseText(pa.leftContext, cell.value, cell.width - 30 - indent)
 				pa.leftContext.fillText(textInfo.text, x + 24 + indent, y + (hei) / 2 + pa.font / 2)
@@ -115,8 +89,6 @@ class Table extends Base {
 				}
 			}
 		}
-		this.textareaInitFocus()
-		pa.clickLeftCell && this.paintLeftAreaBorder()
 	}
 
 	paintHeader = () => {
@@ -177,7 +149,7 @@ class Table extends Base {
 	}
 
 	paintTable = () => {
-		const pa = this._pa || {},
+		const pa = this._pa,
 			area = pa.area || {},
 			tableData = pa.tableData,
 			scrollTop = pa.scrollTop,
@@ -187,17 +159,19 @@ class Table extends Base {
 			endRow = area.endRowIndex,
 			endCol = area.endColIndex,
 			isMultipleCell = isSelectMultipleCell(area)
-		if (!tableData || tableData.length === 0) return
+		if (tableData.length === 0) return
 		pa.tableContext.lineWidth = LINE_WIDTH
 		pa.tableContext.font = `${pa.font}px Arial`
-		let startRowIndex = getPointStartRowIndex(tableData, scrollTop),
+		let i = getPointStartRowIndex(tableData, scrollTop),
 			endRowIndex = getPointEndRowIndex(tableData, pa.tableBodyHeight, scrollTop),
 			firstCellsIndex = getPointStartColIndex(tableData, scrollLeft),
 			endColIndex = getPointEndColIndex(tableData, pa.rightSurplusWidth, scrollLeft)
-		for (let i = startRowIndex; i < tableData.length; i++) {
+
+		for (; i < tableData.length; i++) {
 			const cells = tableData[i].cells
 
 			if (i > endRowIndex) break
+
 			let lens = cells.length
 			for (let j = firstCellsIndex; j < lens; j++) {
 				const cell = cells[j]
@@ -238,7 +212,7 @@ class Table extends Base {
 						cell.backgroundColor)
 				}
 				//文字
-				pa.tableContext.fillStyle = cell.contentColor || COLOR
+				pa.tableContext.fillStyle = COLOR
 				// 这里是格式化函数
 				if (pa.format && pa.format[cell.cellType]) {
 					v = pa.format[cell.cellType](cell, pa.fakeValue)
@@ -255,7 +229,8 @@ class Table extends Base {
 						cell.value,
 						cell.width - boundary,
 						cell.x + 6,
-						cell.y + ROW_HEIGHT - pa.font / 2)
+						cell.y + ROW_HEIGHT - pa.font / 2,
+						cell.height)
 					wrapList.map(v => pa.tableContext.fillText(v.line, v.x - scrollLeft, v.y - scrollTop))
 				} else {
 					const textInfo = ellipseText(pa.tableContext, v, cell.width - boundary)
@@ -290,9 +265,6 @@ class Table extends Base {
 		pa.tableContext.fillRect(0, pa.leftHeight + 1, pa.width - pa.leftWidth, pa.tableBodyHeight - pa.leftHeight)
 		pa.tableContext.fill()
 		pa.selectedCell && this.paintAreaBorder()
-		this.textareaInitFocus()
-		pa.rowViewEndIndex = endRowIndex
-		// pa.rowViewTotal = endRowIndex - startRowIndex + 1
 	}
 	paintOpenIcon = (ctx, cell, x, leftIcon) => {
 		if (!cell || !cell.childCount) return
@@ -372,20 +344,6 @@ class Table extends Base {
 		pa.tableContext.rect(rectX, rectY, width - 3, height - 3);
 		pa.tableContext.stroke()
 		pa.tableContext.closePath()
-
-	}
-
-	paintLeftAreaBorder = () => {
-		const pa = this._pa
-		if (pa.formType === '1' && pa.fakeValue) {
-			const cell = pa.clickLeftCell
-			pa.leftContext.strokeStyle = '#4b89ff'
-			pa.leftContext.lineWidth = LINE_WIDTH * 2
-			pa.leftContext.beginPath()
-			pa.leftContext.rect(2, cell.y - pa.scrollTop + 2, cell.width - 4, cell.height - 3);
-			pa.leftContext.stroke()
-			pa.leftContext.closePath()
-		}
 
 	}
 	// 绘制背景颜色
@@ -474,7 +432,7 @@ class Table extends Base {
 		cell.formatValue = v
 		clearRect(pa.tableContext, newX, newY, cell.width - 1, cell.height - 1)
 		this.paintCellBgColor(pa.tableContext, newX, newY, cell.width - 1, cell.height - 1, cell.backgroundColor)
-		pa.tableContext.fillStyle = cell.contentColor || COLOR
+		pa.tableContext.fillStyle = COLOR
 		let boundary = 6
 		if (cell.cellType === 'dropDown') {
 			boundary += 16
@@ -507,25 +465,6 @@ class Table extends Base {
 		// 保存修改过的cell pa.selectedCell
 		pa.record.historyPush(cell)
 	}
-
-	setLeftValue = (c, row, col) => {
-		const pa = this._pa
-		const cell = pa.leftData[row].cells[col]
-		const index = pa.leftAllData.findIndex(v => v.cells[0].id === cell.id)
-		cell.id = c.id
-		cell.fullpath = c.fullpath
-		cell.value = c.value
-		cell.menuItemState = c.menuItemState
-		cell.updated = false
-		delete cell.dynaCell
-		pa.leftAllData[index].cells[col] = cell
-		const y = cell.y - pa.scrollTop
-		clearRect(pa.leftContext, cell.x, y, cell.width - 1, cell.height - 1)
-		this.paintCellBgColor(pa.leftContext, cell.x + 1, y + 1, cell.width - 2, cell.height - 1, cell.backgroundColor)
-		pa.leftContext.fillStyle = COLOR
-		pa.leftContext.fillText(cell.value, cell.x + 24 + (cell.indentCount || 0) * 10, y + (cell.height) / 2 + pa.font / 2)
-	}
-
 	setData = (data) => {
 		if (!data) {
 			throw "data is undefined!"
@@ -542,11 +481,12 @@ class Table extends Base {
 		const oldData = pa.tableAllData
 		for (let i = 0; i < oldData.length; i++) {
 			const oCells = oldData[i].cells
-			const oldRow = oCells[0].originalRowIndex
+			const oldRow = oCells[0].oldRowIndex
 			const nCells = data[oldRow].cells
-			if (oldRow === nCells[0].rowIndex) {
+			if (oCells[0].oldRowIndex === nCells[0].rowIndex) {
 				for (let h = 0; h < oCells.length; h++) {
 					for (let q = 0; q < nCells.length; q++) {
+						//const oldCol = oCells[h].oldColumnIndex
 						if (oCells[h].fullpath === nCells[q].fullpath && oCells[h].groupIndex === nCells[q].groupIndex) {
 							if (nCells[q].hasOwnProperty('value')) {
 								oCells[h].value = nCells[q].value

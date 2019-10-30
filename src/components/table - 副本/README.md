@@ -32,13 +32,13 @@
         </tr>
         <tr>
             <td>setRowOpenStatus</td>
-            <td>设置行展开状态,默认0</td>
-			<td>setRowOpenStatus(0|1|2|Infinity)</td>
+            <td>设置行展开状态,默认false</td>
+			<td>setRowOpenStatus(true)</td>
         </tr>
         <tr>
             <td>setColOpenStatus</td>
-            <td>设置列展开状态,默认0</td>
-			<td>setColOpenStatus(0|1|2|Infinity)</td>
+            <td>设置列展开状态,默认false</td>
+			<td>setColOpenStatus(true)</td>
         </tr>
         <tr>
             <td>setExpandArrowStatus</td>

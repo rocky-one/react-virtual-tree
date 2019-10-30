@@ -3,7 +3,7 @@
  * @param {array} data 
  */
 export const initLeftData = (datas = []) => {
-    const data = datas // JSON.parse(JSON.stringify(datas));
+    const data = JSON.parse(JSON.stringify(datas));
     const keys = Object.keys(data)
     let leftData = []
     let repeatSign = {} // 移除需要合并的行标记
@@ -13,10 +13,6 @@ export const initLeftData = (datas = []) => {
         let curCells = data[key]
         if (curCells && curCells.length > 0) {
             curCells.forEach((cell, j) => { // 列
-                if (!cell.hasOwnProperty('originalRowIndex')) {
-                    datas[key][j].originalRowIndex = cell.rowIndex
-                    datas[key][j].originalColumnIndex = cell.columnIndex
-                }
                 let sign = null;
                 if (cell.fullpath) {
                     sign = `${cell.fullpath}${cell.groupIndex}`;
@@ -33,9 +29,13 @@ export const initLeftData = (datas = []) => {
 
                 } else {
                     let c = cell
+                    //c.member = cell.dims
                     c.menuItemState = cell.menuItemState
+                    //c.dimId = cell.dims ? cell.dims[0].current.dimId : null
+                    // c.id= `${cell.path}${cell.groupIndex}`
                     c.groupIndex = cell.groupIndex || 0
                     c.reallyParentId = cell.parentId || null
+                    //c.parentId = setParentId(cell, data) // 后端数据 只有第一个td有parentId字段,所以要把第一个之后的parentId也设置上
                     newCells.push(c)
                 }
             })
@@ -47,12 +47,23 @@ export const initLeftData = (datas = []) => {
     return leftData
 }
 
+const setParentId = (cell, data) => {
+    let cells = data[cell.rowIndex]
+    let pId = null
+    for (let i = cell.columnIndex; i >= 0; i--) {
+        if (cells[i].parentId) {
+            return cells[i].parentId
+        }
+    }
+    return pId;
+}
+
 /**
  * 初始化头部数据 主要是移除空白列
  * @param {*} data 
  */
 export const initHeaderData = (datas = {}) => {
-    const data = datas  // JSON.parse(JSON.stringify(datas));
+    const data = JSON.parse(JSON.stringify(datas));
     const keys = Object.keys(data);
     let rowLen = keys.length > 0 ? data[0].length : 0;
     let headerData = new Array(rowLen);
@@ -90,46 +101,5 @@ export const initHeaderData = (datas = {}) => {
         }
     });
     return headerData;
-}
-
-export const initLeftDynaRow = (list) => {
-    const res = list
-    for (let i = 0; i < 1; i++) {
-        const v = res[res.length - 1]
-        res.push({
-            cells: [{
-                ...v.cells[0],
-                id: 'DYNA',
-                parentId: undefined,
-                reallyParentId: undefined,
-                indentCount: 0,
-                dynaCell: true,
-                updated: true,
-                value: '+新增成员，回车保存',
-                rowIndex: v.cells[0].rowIndex + 1,
-                // oldRowIndex: v.cells[0].rowIndex + 1,
-            }]
-        })
-    }
-    return res
-}
-
-
-export const initTableDynaRow = (list) => {
-    const res = list
-    for (let i = 0; i < 1; i++) {
-        const preRow = res[res.length - 1]
-        const newRow = { rowIndex: preRow.rowIndex + 1, cells: [] }
-        newRow.cells = preRow.cells.map(v => {
-            return {
-                ...v,
-                updated: true,
-                value: '',
-                rowIndex: v.rowIndex + 1
-            }
-        })
-        res.push(newRow)
-    }
-    return res
 }
 
