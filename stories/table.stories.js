@@ -19,7 +19,7 @@ function addRow(){
     }
     baseNum+=50
 }
-for(let i = 0;i<300;i++){
+for(let i = 0;i<3600;i++){
     addRow()
 }
 let rowLength = Object.keys(rowCells).length

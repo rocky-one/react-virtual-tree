@@ -24,6 +24,12 @@ import {
 	DYNA_COLOR,
 	SCROLL_SIZE,
 } from './tableConst'
+import {
+	findStartIndex
+} from './utils/point'
+import {
+	recursionPre,
+} from './utils/handleLeftData'
 // import {
 // 	setTableData,
 // 	initTableAllDataOldIndex,
@@ -38,7 +44,6 @@ class Table extends Base {
 	}
 
 	paintLeft = () => {
-		let t = new Date()
 		const pa = this._pa,
 			scrollTop = pa.scrollTop,
 			leftData = pa.leftData
@@ -48,7 +53,15 @@ class Table extends Base {
 
 		pa.leftContext.beginPath()
 		pa.leftContext.fillStyle = '#F8F8F8'
-
+		let ii = findStartIndex(scrollTop, pa.leftData)
+		let iii = ii
+		let cs = pa.leftData[ii].cells
+		let ce = cs[cs.length - 1]
+		recursionPre(ce, 'preCell', pa.leftAllData, (pCell) => {
+			if (pCell) {
+				iii = pCell.newRowIndex
+			}
+		})
 		let h = pa.leftHeight
 		if (pa.scrollBar.hasHScroll()) {
 			if (!pa.scrollBar.hasVScroll()) {
@@ -60,15 +73,19 @@ class Table extends Base {
 		pa.leftContext.fillRect(0, 0, pa.leftWidth, h)
 		pa.leftContext.fill()
 		pa.paintLeftEnd = 0
-		let sign = false
 		//开始位置从0开始计算 后面需要优化这个开始位置的索引 减少计算
-		let i = 0 
-		for (let len = leftData.length; i < len; i++) {
+		let i = iii
+		let len = leftData.length
+		sign:
+		for (; i < len; i++) {
 			const leftCells = leftData[i].cells || []
 			for (let j = 0, len = leftCells.length; j < len; j++) {
 				const cell = leftCells[j]
 				let x = cell.x
 				let y = cell.y
+				if (cell.y > pa.tableBodyHeight + scrollTop) {
+					break sign
+				}
 				let hei = cell.height
 				let yScroll = y + hei
 				if (yScroll >= scrollTop) {
@@ -76,19 +93,15 @@ class Table extends Base {
 				} else {
 					continue
 				}
-				if (y - scrollTop >= pa.tableBodyHeight) {
-					pa.paintLeftEnd++
-					if (pa.paintLeftEnd === pa.leftInfo.length) {
-						this.textareaInitFocus()
-						pa.clickLeftCell && this.paintLeftAreaBorder()
-						return
-					}
-				}
-				if(!sign) {
-					sign = true
-					pa.leftPrePointIndex = i
-				}
-			console.log(i,'ii')
+				// if (y - scrollTop >= pa.tableBodyHeight) {
+				// 	pa.paintLeftEnd++
+				// 	if (pa.paintLeftEnd === pa.leftInfo.length) {
+				// 		this.textareaInitFocus()
+				// 		pa.clickLeftCell && this.paintLeftAreaBorder()
+				// 		return
+				// 	}
+				// }
+
 				pa.paintLeftCellCb && pa.paintLeftCellCb(cell)
 				let curWid = cell.width
 				let endX = x + curWid
@@ -108,8 +121,8 @@ class Table extends Base {
 				//this.paintCellBgColor(pa.leftContext, x + 1, y + 1, cell.width - 2, cell.height - 1, cell.backgroundColor)
 				pa.leftContext.fillStyle = cell.dynaCell ? DYNA_COLOR : COLOR
 				let indent = (cell.indentCount || 0) * 10
-				const textInfo = ellipseText(pa.leftContext, cell.value, cell.width - 30 - indent)
-				pa.leftContext.fillText(textInfo.text, x + 24 + indent, y + (hei) / 2 + pa.font / 2)
+				//const textInfo = ellipseText(pa.leftContext, cell.value, cell.width - 30 - indent)
+				pa.leftContext.fillText(`${cell.rowIndex},${cell.columnIndex}`, x + 24 + indent, y + (hei) / 2 + pa.font / 2)
 				if (pa.showExpandArrow) {
 					this.paintOpenIcon(pa.leftContext, cell, cell.x + indent, true)
 				}
