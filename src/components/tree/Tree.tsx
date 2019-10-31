@@ -42,10 +42,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             data: this.handleTree.getViewData()
         })
     }
-    componentDidUpdate() {
-
-        // this.onSearchKeys()
-    }
+    
     onDragStart = (e) => {
         // e.dataTransfer.dropEffect = "move"
         this.dragMapKey = e.target.getAttribute('data-map-key')
