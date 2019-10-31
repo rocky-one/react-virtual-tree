@@ -1,45 +1,121 @@
 import {
     ROW_WIDTH,
+    ROW_HEIGHT,
 } from '../tableConst'
 import {
     getLastHeaderCells
 } from './handleHeaderData'
 import { defer } from './common';
 
-export const initTableData = (tableAllData = [], leftAllData, leftData, headerAllData, headerData, zero = false) => {
+export const initTableData = (
+    tableAllData = [],
+    leftAllData,
+    leftData,
+    headerAllData,
+    headerData,
+    tableBodyHeight,
+    showDataMap) => {
     const headerLastCells = getLastHeaderCells(headerAllData)
     const newTableAllData = []
-    tableAllData.forEach((row, i) => {
-        let newRow = {}
-        let cells = row.cells
-        const leftLastCell = getLeftRowLastCell(leftAllData, i)
-        newRow.x = leftLastCell.x
-        newRow.y = leftLastCell.y
-        newRow.height = leftLastCell.height
-        newRow.rowIndex = i
-        let newCells = []
-        cells.forEach((cell, j) => {
-            let newCell = { ...cell }
-            // originalRowIndex排序
-            if (!newCell.hasOwnProperty('originalRowIndex')) {
-                newCell.originalRowIndex = cell.rowIndex
-                newCell.originalColumnIndex = cell.columnIndex
+    let tableData = []
+    let i = 0, length = tableAllData.length
+
+    const headerColIndex = getHeaderDataIndex(headerData, 'oldColumnIndex')
+    function setTableDatas(index, tableData, leftData, colKey) {
+        let i = index
+        for (; i < tableData.length; i++) {
+            const cells = tableData[i].cells;
+            const cs = [];
+            let leftCell = leftData[i].cells[leftData[i].cells.length - 1]
+            let preCell = false;
+            let newColIndex = 0
+            tableData[i].rowIndex = i
+            for (let j = 0; j < cells.length; j++) {
+                let cell = cells[j];
+                if (!cell) break
+                if (headerColIndex[cell[colKey]]) {
+                    cell.x = preCell ? preCell.x + preCell.width : 0
+                    cell.y = leftCell.y
+                    cell.newColIndex = newColIndex++;
+                    cell.newRowIndex = i;
+                    cell.height = tableData[i].height
+                    cell.width = headerLastCells[cell.newColIndex].width || ROW_WIDTH
+                    cs.push(cell);
+                    preCell = cell;
+                }
             }
-            newCell.oldRowIndex = cell.rowIndex
-            newCell.oldColumnIndex = cell.columnIndex
-            newCell.x = headerLastCells[j].x
-            newCell.y = leftLastCell.y
-            newCell.width = headerLastCells[j].width
-            newCell.height = leftLastCell.height
-            newCell.id = newCell.id || `${i}${j}`
-            newCells.push(newCell)
-        })
-        newRow.cells = newCells
-        newTableAllData.push(newRow)
-    })
+            tableData[i].cells = cs;
+        }
+        return tableData
+    }
+
+    function init(len) {
+        let tableIndex = i
+        for (; i < len; i++) {
+            const row = tableAllData[i]
+            let newRow = {}
+            let cells = row.cells
+            const leftLastCell = getLeftRowLastCell(leftAllData, i)
+            newRow.x = leftLastCell.x
+            newRow.y = leftLastCell.y
+            newRow.height = leftLastCell.height
+            newRow.rowIndex = i
+            let newCells = []
+            cells.forEach((cell, j) => {
+                let newCell = { ...cell }
+                // originalRowIndex排序
+                if (!newCell.hasOwnProperty('originalRowIndex')) {
+                    newCell.originalRowIndex = cell.rowIndex
+                    newCell.originalColumnIndex = cell.columnIndex
+                }
+                newCell.oldRowIndex = cell.rowIndex
+                newCell.oldColumnIndex = cell.columnIndex
+                newCell.x = headerLastCells[j].x
+                newCell.y = leftLastCell.y
+                newCell.width = headerLastCells[j].width
+                newCell.height = leftLastCell.height
+                newCell.id = newCell.id || `${i}${j}`
+                newCells.push(newCell)
+            })
+            newRow.cells = newCells
+            newTableAllData.push(newRow)
+
+            if (showDataMap[cells[0].rowIndex]) {
+                tableData.push({...newRow})
+            }
+        }
+        tableData = setTableDatas(tableIndex, tableData, leftData, 'oldColumnIndex') 
+    }
+    let len = Math.ceil(tableBodyHeight / ROW_HEIGHT) + 1
+
+    let num = 500
+    let fragment = Math.ceil(length / num)
+    function loop() {
+        if (fragment > 0) {
+            defer(() => {
+                fragment--
+                len += num
+                if (len > length) len = length
+                init(len)
+                loop()
+            })
+        }
+    }
+    // init(length)
+
+    if (len < length) {
+        init(len)
+        // 延迟计算
+        loop()
+    } else {
+        init(length)
+    }
+
     return {
         tableAllData: newTableAllData,
-        tableData: zero ? newTableAllData : setTableData(leftData, headerData, newTableAllData)
+        tableData
+        // tableData: setTableData(leftData, headerData, newTableAllData)
+        //tableData: zero ? newTableAllData : setTableData(leftData, headerData, newTableAllData)
     }
 }
 

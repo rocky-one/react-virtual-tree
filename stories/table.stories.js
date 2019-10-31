@@ -7,7 +7,6 @@ const rowCells = {"0":[{"childCount":0,"colSpan":1,"columnIndex":0,"fullpath":"1
 let baseNum = 50
 function addRow(){
     for(let j = 0;j<50;j++){
-        
         let c0 = {...rowCells[j][0]}
         let c1 = {...rowCells[j][1]}
         c0.rowIndex = baseNum+j
@@ -15,14 +14,16 @@ function addRow(){
         c0.rullpath = `0${baseNum+j}`
         c1.rullpath = `1${baseNum+j}`
         rowCells[j+baseNum] = [c0,c1]
-        
     }
     baseNum+=50
 }
-for(let i = 0;i<3600;i++){
+
+
+for(let i = 0;i<100;i++){
     addRow()
 }
 let rowLength = Object.keys(rowCells).length
+
 console.log('左侧单元格数量:',rowLength*2,'数据区域单元格数量',rowLength*4)
 
 // body
@@ -39,7 +40,7 @@ for(let i = 0;i<rowLength;i++){
             indentCount:0,
             rowIndex:i,
             rowSpan:1,
-            value:`${i},${j}`,
+            value:`${i}, ${j}`,
         })
     }
     body.push({

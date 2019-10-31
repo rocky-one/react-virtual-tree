@@ -25,7 +25,8 @@ import {
 	SCROLL_SIZE,
 } from './tableConst'
 import {
-	findStartIndex
+	findStartIndex,
+	findEndIndex,
 } from './utils/point'
 import {
 	recursionPre,
@@ -37,44 +38,47 @@ import {
 
 class Table extends Base {
 	constructor(option = {}) {
+		let  t = new Date()
 		super(option)
 		this.paintLeft()
 		this.paintHeader()
 		this.paintTable()
+		console.log('渲染耗时: ',new Date() - t)
 	}
 
 	paintLeft = () => {
 		const pa = this._pa,
 			scrollTop = pa.scrollTop,
 			leftData = pa.leftData
-
-		pa.leftContext.lineWidth = LINE_WIDTH
-		pa.leftContext.font = `${pa.font}px Arial`
-
-		pa.leftContext.beginPath()
-		pa.leftContext.fillStyle = '#F8F8F8'
-		let ii = findStartIndex(scrollTop, pa.leftData)
-		let iii = ii
-		let cs = pa.leftData[ii].cells
-		let ce = cs[cs.length - 1]
-		recursionPre(ce, 'preCell', pa.leftAllData, (pCell) => {
+		// 计算开始渲染的位置
+		let startIndex = findStartIndex(scrollTop, pa.leftData)
+		let startNewRowIndex = startIndex
+		let cells = pa.leftData[startIndex].cells
+		let cellCur = cells[cells.length - 1]
+		pa.startPaintIndex = startIndex
+		recursionPre(cellCur, 'preCell', pa.leftAllData, (pCell) => {
 			if (pCell) {
-				iii = pCell.newRowIndex
+				startNewRowIndex = pCell.newRowIndex
 			}
 		})
-		let h = pa.leftHeight
-		if (pa.scrollBar.hasHScroll()) {
-			if (!pa.scrollBar.hasVScroll()) {
-				h -= SCROLL_SIZE
-			}
-		} else {
-			h -= SCROLL_SIZE
-		}
+		// 计算高度
+		let h = pa.tableBodyHeight //pa.leftHeight
+		// if (pa.scrollBar.hasHScroll()) {
+		// 	if (!pa.scrollBar.hasVScroll()) {
+		// 		h -= SCROLL_SIZE
+		// 	}
+		// } else {
+		// 	h -= SCROLL_SIZE
+		// }
+		pa.leftContext.lineWidth = LINE_WIDTH
+		pa.leftContext.font = `${pa.font}px Arial`
+		pa.leftContext.beginPath()
+		pa.leftContext.fillStyle = '#F8F8F8'
 		pa.leftContext.fillRect(0, 0, pa.leftWidth, h)
 		pa.leftContext.fill()
 		pa.paintLeftEnd = 0
-		//开始位置从0开始计算 后面需要优化这个开始位置的索引 减少计算
-		let i = iii
+
+		let i = startNewRowIndex
 		let len = leftData.length
 		sign:
 		for (; i < len; i++) {
@@ -203,13 +207,13 @@ class Table extends Base {
 		if (!tableData || tableData.length === 0) return
 		pa.tableContext.lineWidth = LINE_WIDTH
 		pa.tableContext.font = `${pa.font}px Arial`
-		let startRowIndex = getPointStartRowIndex(tableData, scrollTop),
-			endRowIndex = getPointEndRowIndex(tableData, pa.tableBodyHeight, scrollTop),
+		let startRowIndex = pa.startPaintIndex, //getPointStartRowIndex(tableData, scrollTop),
+			endRowIndex = findEndIndex(scrollTop, pa.tableBodyHeight, tableData),//getPointEndRowIndex(tableData, pa.tableBodyHeight, scrollTop),
 			firstCellsIndex = getPointStartColIndex(tableData, scrollLeft),
 			endColIndex = getPointEndColIndex(tableData, pa.rightSurplusWidth, scrollLeft)
+
 		for (let i = startRowIndex; i < tableData.length; i++) {
 			const cells = tableData[i].cells
-
 			if (i > endRowIndex) break
 			let lens = cells.length
 			for (let j = firstCellsIndex; j < lens; j++) {

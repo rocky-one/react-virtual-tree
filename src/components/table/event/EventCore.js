@@ -248,15 +248,13 @@ class EventCore {
                 this.tableIns.setSelectedCell(null)
                 let t = new Date()
                 pa.headerData = onExpandCol(headerCell.cell, pa.headerData, pa.headerAllData)
-                console.log('头部计算耗时: ',new Date() - t)
-                let t2 = new Date()
                 pa.tableData = getViewTableData({
                     leftData: pa.leftData, 
                     headerData:pa.headerData, 
                     tableAllData: pa.tableAllData, 
                     rowViewEndIndex: pa.rowViewEndIndex
                 })
-                console.log('头部数据区域计算耗时: ',new Date() - t2)
+                console.log('头部数据计算耗时: ',new Date() - t)
                 //pa.tableData = setTableData(pa.leftData, pa.headerData, pa.tableAllData)
                 // setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
                 // 更新宽度

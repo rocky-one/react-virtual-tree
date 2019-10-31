@@ -170,8 +170,33 @@ export const findStartIndex = (scrollTop, data) => {
             oneNum = newOneNum
             i = 0
             continue
-
         } if (last.y + last.height >= scrollTop && last.y <= scrollTop) {
+            return s
+        }
+        s += oneNum
+        if (s >= len) {
+            s = len - 1
+        }
+    }
+}
+
+export const findEndIndex = (scrollTop, bodyHeight, data) => {
+    let len = data.length
+    let oneNum = Math.ceil(len / 10)
+    let num = Math.ceil(len / oneNum)
+    let s = 0
+    for (let i = 0; i <= num + 1; i++) {
+        const cells = data[s].cells
+        const last = cells[cells.length - 1]
+        const hei = scrollTop + bodyHeight
+        if (last.y > hei) {
+            let newOneNum = Math.ceil(oneNum / 10)
+            num = Math.ceil(oneNum / newOneNum)
+            s -= oneNum
+            oneNum = newOneNum
+            i = 0
+            continue
+        } if (last.y + last.height >= hei && last.y <= hei) {
             return s
         }
         s += oneNum

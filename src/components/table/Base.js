@@ -360,7 +360,6 @@ class Base {
 			headerData: option.headerData,
 			tableData: option.tableData,
 		})
-		this.initSizeAttr(option)
 		this.initFnAttr(option)
 		this.init(option)
 		this.eventCore = new EventCore({
@@ -400,23 +399,28 @@ class Base {
 		const leftInfoObj = initLeftInfo(leftData, pa.miniWidth)
 		const leftDataObj = (pa.rowOpenLevel === Infinity && !pa.showExpandArrow)
 			? initOpenLeftData(leftData, leftInfoObj.leftInfoMap)
-			: initLeftData(leftData, leftInfoObj.leftInfoMap, pa.rowOpenLevel)//pa.rowOpen
+			: initLeftData(leftData, leftInfoObj.leftInfoMap, pa.rowOpenLevel) //pa.rowOpen
 		const headerDataObj = (pa.colOpenLevel === Infinity && !pa.showExpandArrow)
 			? initOpenHeaderData(headerData)
 			: initHeaderData(headerData, pa.colOpenLevel) //pa.colOpen
+		console.log('初始化 左侧数据计算耗时: ', new Date() - t)
+		addAttr(pa, leftInfoObj, leftDataObj, headerDataObj)
+		this.initSizeAttr()
 		const tableDataObj = initTableData(
 			tableData,
 			leftDataObj.leftAllData,
 			leftDataObj.leftData,
 			headerDataObj.headerAllData,
-			headerDataObj.headerData)
-		addAttr(pa, leftInfoObj, leftDataObj, headerDataObj, tableDataObj)
+			headerDataObj.headerData,
+			pa.tableBodyHeight,
+			pa.showDataMap)
+		addAttr(pa, tableDataObj)
 		// 不是定义模式 才自动计算高度
 		if (pa.showExpandArrow) {
 			// setRowHeight(pa, pa.leftAllData, pa.leftAllData, pa.tableAllData)
 			// setRowHeight(pa, pa.leftAllData, pa.leftData, pa.tableData)
 		}
-		console.log('初始化数据计算耗时: ',new Date() -t)
+		console.log('初始化 所有数据计算耗时: ', new Date() - t)
 	}
 	initSizeAttr(option = {}) {
 		const pa = this._pa

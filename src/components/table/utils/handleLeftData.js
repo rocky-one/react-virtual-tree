@@ -48,7 +48,8 @@ export const initLeftData = (data = [], leftInfoMap, openLevel = 0) => {
         leftData = [],
         hiddenRowsMap = {}, // 存放要隐藏的行
         open = openLevel === Infinity,
-        preEndIndex = -1
+        preEndIndex = -1,
+        showDataMap = {}
 
     for (let i = 0, len = data.length; i < len; i++) {
         let row = data[i],
@@ -106,9 +107,15 @@ export const initLeftData = (data = [], leftInfoMap, openLevel = 0) => {
 
         if (open) {
             leftData.push(newRow)
+            const c = newRow.cells
+            const last = c[c.length - 1];
+            showDataMap[last['oldRowIndex']] = true;
         } else if (!open && !hiddenRowsMap[i]) {
-            if (newRow.cells.length > 0) {
-                !newRow.cells[0].parentId && leftData.push(newRow)
+            if (newRow.cells.length > 0 && !newRow.cells[0].parentId) {
+                leftData.push(newRow)
+                const c = newRow.cells
+                const last = c[c.length - 1];
+                showDataMap[last['oldRowIndex']] = true;
             }
         }
         leftAllData.push(newRow)
@@ -118,12 +125,14 @@ export const initLeftData = (data = [], leftInfoMap, openLevel = 0) => {
         return {
             leftData: newData,
             leftHeight: getLeftHeight(leftData),
-            leftAllData
+            leftAllData,
+            showDataMap,
         }
     }
     return {
         ...updateLeftDataYWithIndex(open ? leftData : initLeftNewRowSpan(leftData, leftAllData)),
         leftAllData,
+        showDataMap,
     }
 }
 
