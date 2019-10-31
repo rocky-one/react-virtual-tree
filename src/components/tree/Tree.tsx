@@ -307,7 +307,7 @@ export default class Tree<T> extends React.Component<TreeProps<T>, TreeState<T>>
             width,
             height,
         } = this.props
-
+ 
         return <div className="r-h-tree"
             style={{
                 width: width ? `${width}px` : 'auto',

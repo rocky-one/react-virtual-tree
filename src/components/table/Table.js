@@ -35,7 +35,7 @@ import {
 // 	setTableData,
 // 	initTableAllDataOldIndex,
 // } from './utils/handleTableData'
-
+ 
 class Table extends Base {
 	constructor(option = {}) {
 		let  t = new Date()
