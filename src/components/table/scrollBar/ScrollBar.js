@@ -206,7 +206,11 @@ class ScrollBar {
         if (auto) {
             pageY = calcScorllPxByAutoPx(surplusHeight, this.maxScrollTop, pageY)
         }
+        // 数据大时  this.vDownY取值会比pageY大 有误差
+        // 如果pageY比较小 直接把vDownY=0
+        if (pageY > 0 && pageY < 4) this.vDownY = 0
         this.vDistance = pageY - this.vDownY
+
         this.vBound = 0
         //向下移动
         if (this.preVy < this.vMoveY) {
@@ -218,6 +222,7 @@ class ScrollBar {
                 return
             }
             // 超出上边界时 又向下移动 此时不需移动
+
             if (this.startVScrollBar + this.vDistance <= 0) {
                 this.setVerticalScrollBarPosi(0)
                 this.vBound = 1

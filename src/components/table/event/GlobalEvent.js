@@ -91,6 +91,7 @@ class GlobalEvent {
         // 框选区域
         if (pa.mousedown) {
             if (pa.exceedBound) {
+                
                 // 计算滚动条中心点坐标, 只计算一次--
                 if (!pa.exceedPageX && pa.leftRightBound) {
                     pa.exceedPageX = pa.scrollBar.startAutoScrollH().pageX
@@ -98,6 +99,7 @@ class GlobalEvent {
                 if (!pa.exceedPageY && pa.topBottomBound) {
                     pa.exceedPageY = pa.scrollBar.startAutoScrollV().pageY
                 }
+                
                 // 超出一个方向的边界时, 另一个边界继续做选中区域
                 if (!pa.autoScrollStart) {
                     autoScroll(pa)

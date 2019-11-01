@@ -11,15 +11,15 @@ function addRow(){
         let c1 = {...rowCells[j][1]}
         c0.rowIndex = baseNum+j
         c1.rowIndex = baseNum+j
-        c0.rullpath = `0${baseNum+j}`
-        c1.rullpath = `1${baseNum+j}`
+        // c0.fullpath = `${baseNum+j}`
+        // c1.fullpath = `${baseNum+j}`
         rowCells[j+baseNum] = [c0,c1]
     }
     baseNum+=50
 }
 
 
-for(let i = 0;i<100;i++){
+for(let i = 0;i<21;i++){
     addRow()
 }
 let rowLength = Object.keys(rowCells).length

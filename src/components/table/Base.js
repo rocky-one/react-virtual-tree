@@ -629,11 +629,11 @@ class Base {
 		// this.documentEvents = [
 		// 	{
 		// 		event: 'mousemove',
-		// 		fn: this.eventCore.documentBodyMousemove
+		// 		fn: this.enhanceEventFn(this.eventCore.bodyMusemove)
 		// 	},
 		// 	{
 		// 		event: 'mouseup',
-		// 		fn: this.eventCore.documentBodyMouseup
+		// 		fn: this.enhanceEventFn(this.eventCore.bodyMouseup)
 		// 	},
 		// ]
 	}
@@ -676,7 +676,7 @@ class Base {
 		})
 
 		// this.documentEvents.forEach(eventItem => {
-		// 	addEvent(document.body, eventItem.event, eventItem.fn))
+		// 	addEvent(document.body, eventItem.event, eventItem.fn)
 		// })
 
 		// 屏蔽右键菜单

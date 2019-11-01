@@ -205,7 +205,6 @@ export function autoScroll(pa) {
 			pa.area.startRowIndex = pa.selectedCell.newRowIndex
 		}
 	}
-
 	// 右
 	if (pa.scrollBar.hBound === 1 && pa.leftRightBound === 1) {
 		clearAutoScroll(pa)

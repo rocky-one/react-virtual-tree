@@ -5,7 +5,6 @@ import {
     SCROLL_SIZE
 } from '../tableConst'
 import { openLeftByLevel } from './openAndCloseLeft'
-import { defer } from './common'
 
 // 根据第一行设置对应列的 坐标，宽度映射
 export const initLeftInfo = (leftData, miniWidth = false) => {
@@ -41,7 +40,6 @@ export const initLeftInfo = (leftData, miniWidth = false) => {
     }
 }
 
-
 // 初始化数据
 export const initLeftData = (data = [], leftInfoMap, openLevel = 0) => {
     let leftAllData = [],
@@ -49,7 +47,39 @@ export const initLeftData = (data = [], leftInfoMap, openLevel = 0) => {
         hiddenRowsMap = {}, // 存放要隐藏的行
         open = openLevel === Infinity,
         preEndIndex = -1,
-        showDataMap = {}
+        showDataMap = {},
+        zeroClearing = {},
+        leftHeight = 0
+
+    if(data.length === 0){
+        return {
+            leftData,
+            leftHeight: 0,
+            leftAllData,
+            showDataMap,
+        }
+    }
+
+    // 更新坐标
+    const colMap = {}
+    const firstCells = data[0].cells || []
+    firstCells.forEach((item, i) => {
+        colMap[i] = 0
+    })
+
+    function setIndex(i,cells) {
+        for (let j = 0; j < cells.length; j++) {
+            const cell = cells[j]
+            cell.newRowIndex = i
+            cell.newColIndex = j
+            cell.y = colMap[cell.columnIndex]
+            colMap[cell.columnIndex] += cell.height
+            if (j === cells.length - 1) {
+                leftHeight += cell.height
+            }
+        }
+    }
+
 
     for (let i = 0, len = data.length; i < len; i++) {
         let row = data[i],
@@ -58,35 +88,23 @@ export const initLeftData = (data = [], leftInfoMap, openLevel = 0) => {
             lens = curCells.length
 
         for (let j = 0; j < lens; j++) {
-            const cell = { ...curCells[j] }
-            if (!cell.rowSpan) cell.rowSpan = 1
+            const cell = Object.assign({}, curCells[j])
             cell.oldRowIndex = cell.rowIndex
             cell.oldHeight = (cell.height || ROW_HEIGHT) * cell.rowSpan
             cell.width = leftInfoMap[cell.columnIndex].width
             cell.x = leftInfoMap[cell.columnIndex].x
             cell.cid = `${i}${j}`
-            if (lens - 1 === j) {
-                cell.height = cell.height || ROW_HEIGHT
-            }
-
             if (cell.childCount > 0) {
-                if (open) {
-                    cell.open = true
-
-                } else {
-                    cell.open = false
-                }
+                cell.open = open
             }
-
             if (open) {
                 cell.newRowSpan = cell.rowSpan
                 cell.height = (cell.height || ROW_HEIGHT) * cell.rowSpan
             }
             // 设置对应关系
             initLinkMapping(i, j, cell, data)
-
             // 计算子节点 开始和结束的索引 用来控制显示隐藏的行数 preEndIndex
-            if (cell.childCount > 0 && cell.columnIndex === 0 && preEndIndex < i) { // && cell.indentCount >= openLevel
+            if (cell.childCount > 0 && cell.columnIndex === 0 && preEndIndex < i) {
                 let startIndex = cell.rowIndex + cell.rowSpan
                 breakSign:
                 for (let s = startIndex; s < data.length; s++) {
@@ -101,20 +119,38 @@ export const initLeftData = (data = [], leftInfoMap, openLevel = 0) => {
             }
             newCells.push(cell)
         }
+
+        const last = newCells[newCells.length - 1];
+        !open && (last.height = last.height || ROW_HEIGHT)
+        last.height = last.height || lastCell.oldHeight
+        last.newRowSpan = 1
+        // 设置newRowSpan
+        if (!open && last.preCell) {
+            recursionPre(last, 'preCell', leftAllData, (pCell) => {
+                if (pCell) {
+                    // 归零处理 避免重复设置
+                    if (!zeroClearing[`${pCell.rowIndex}${pCell.columnIndex}`]) {
+                        zeroClearing[`${pCell.rowIndex}${pCell.columnIndex}`] = true
+                        pCell.newRowSpan = 0
+                        pCell.height = 0
+                    }
+                    pCell.newRowSpan += last.newColSpan
+                    pCell.height += last.height
+                }
+            })
+        }
+
         const newRow = {
             cells: newCells,
         }
-
         if (open) {
             leftData.push(newRow)
-            const c = newRow.cells
-            const last = c[c.length - 1];
+            setIndex(leftData.length-1,newRow.cells)
             showDataMap[last['oldRowIndex']] = true;
         } else if (!open && !hiddenRowsMap[i]) {
             if (newRow.cells.length > 0 && !newRow.cells[0].parentId) {
                 leftData.push(newRow)
-                const c = newRow.cells
-                const last = c[c.length - 1];
+                setIndex(leftData.length-1,newRow.cells)
                 showDataMap[last['oldRowIndex']] = true;
             }
         }
@@ -130,7 +166,8 @@ export const initLeftData = (data = [], leftInfoMap, openLevel = 0) => {
         }
     }
     return {
-        ...updateLeftDataYWithIndex(open ? leftData : initLeftNewRowSpan(leftData, leftAllData)),
+        leftData,
+        leftHeight,
         leftAllData,
         showDataMap,
     }
@@ -149,7 +186,7 @@ export const initOpenLeftData = (data = []) => {
             lens = curCells.length
 
         for (let j = 0; j < lens; j++) {
-            const cell = { ...curCells[j] }
+            const cell = Object.assign({}, curCells[j])
             if (!cell.rowSpan) cell.rowSpan = 1
             cell.oldRowIndex = cell.rowIndex
             cell.height = ROW_HEIGHT * cell.rowSpan
@@ -336,101 +373,8 @@ export const setOpenDataIndexAndXY = (cell, newData = [], leftData = []) => {
         }
     }
     leftData = updateCellAfterData(cell, leftData, rowHeightSum, newData.length)
-    // 更新y坐标
-    // let ii = cell.newRowIndex + (cell.newRowSpan || cell.rowSpan) + newData.length
-    // for (let i = ii; i < leftData.length; i++) {
-    //     const cells = leftData[i].cells
-    //     for (let j = 0; j < cells.length; j++) {
-    //         const c = cells[j]
-    //         c.newRowIndex = i
-    //         c.newColIndex = j
-    //         c.y += rowHeightSum
-    //     }
-    // }
+    
     return leftData.length === 0 ? newData : leftData
-}
-
-// 展开收起
-export const onExpandRow = (cell, leftData, leftAllData) => {
-    if (cell.open) {
-        return colseRow(cell, leftData, leftAllData)
-    }
-
-    return openRow(cell, leftData, leftAllData)
-
-}
-// 展开
-const openRow = (cell, leftData, leftAllData) => {
-    let newData = [];
-    cell.open = true;
-    newData = findCellChildIsShowRows(cell, leftAllData, (c) => {
-        recursionPre(c, 'preCell', leftAllData, (pCell) => {
-            if (!pCell.newRowSpan) {
-                pCell.newRowSpan = 1
-            } else {
-                pCell.newRowSpan += 1
-            }
-            if (!pCell.height) {
-                pCell.height = c.height
-            } else {
-                pCell.height += c.height
-            }
-        })
-    })
-    //  插入新的行
-    let spliceIndex = getSpliceStartIndex(cell)
-    leftData.splice(spliceIndex, 0, ...newData)
-
-    return setOpenDataIndexAndXY(cell, newData, leftData)
-}
-
-// 收起
-export const colseRow = (cell, leftData, leftAllData) => {
-    let childData = [];
-    let changeData = {}
-    cell.open = false;
-    childData = findCellChildIsShowRows(cell, leftAllData)
-    let startIndex = getSpliceStartIndex(cell);
-    let delData = leftData.splice(startIndex, childData.length);
-    // 计算新的rowSpan数
-    let rowSpanSum = 0
-    let rowHeightSum = 0
-    for (let i = 0; i < childData.length; i++) {
-        const cells = childData[i].cells
-        const lastCell = cells[cells.length - 1]
-        rowSpanSum += (lastCell.newRowSpan || lastCell.rowSpan)
-        rowHeightSum += lastCell.height
-    }
-    recursionPre(cell, 'preCell', leftAllData, (pCell) => {
-        if (pCell) {
-            pCell.newRowSpan -= rowSpanSum
-            pCell.height -= rowHeightSum
-        }
-    })
-    for (let i = 0; i < delData.length; i++) {
-        const cells = delData[i].cells
-        const rowIndex = cells[cells.length - 1].oldRowIndex
-        changeData[rowIndex] = rowIndex
-        for (let j = 0; j < cells.length; j++) {
-            const c = cells[j]
-            if (j != cells.length - 1) {
-                c.newRowSpan = null
-                c.height = null
-            }
-        }
-    }
-    // 更新y坐标
-    // let si = cell.newRowIndex + (cell.newRowSpan || cell.rowSpan)
-    // for (let i = si; i < leftData.length; i++) {
-    //     const cells = leftData[i].cells
-    //     for (let j = 0; j < cells.length; j++) {
-    //         const c = cells[j]
-    //         c.newRowIndex = i
-    //         c.newColIndex = j
-    //         c.y -= rowHeightSum
-    //     }
-    // }
-    return updateCellAfterData(cell, leftData, -rowHeightSum, 0)
 }
 
 
@@ -521,8 +465,6 @@ export function findCellChildIsShowRows(cell, leftAllData, cb) {
 
     return newRows
 }
-
-
 
 
 // 获取展开收起时 应该截取的长度 

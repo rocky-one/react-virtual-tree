@@ -62,7 +62,7 @@ export const initTableData = (
             newRow.rowIndex = i
             let newCells = []
             cells.forEach((cell, j) => {
-                let newCell = { ...cell }
+                let newCell =  Object.assign({}, cell) //{ ...cell }
                 // originalRowIndex排序
                 if (!newCell.hasOwnProperty('originalRowIndex')) {
                     newCell.originalRowIndex = cell.rowIndex

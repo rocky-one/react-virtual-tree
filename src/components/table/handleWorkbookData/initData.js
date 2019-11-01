@@ -32,11 +32,11 @@ export const initLeftData = (datas = []) => {
                 if (repeatSign[sign] && cell.rowSpan <= 1) {
 
                 } else {
-                    let c = cell
-                    c.menuItemState = cell.menuItemState
-                    c.groupIndex = cell.groupIndex || 0
-                    c.reallyParentId = cell.parentId || null
-                    newCells.push(c)
+                    // let c = cell
+                    // c.menuItemState = cell.menuItemState
+                    // c.groupIndex = cell.groupIndex || 0
+                    // c.reallyParentId = cell.parentId || null
+                    newCells.push(cell)
                 }
             })
         }

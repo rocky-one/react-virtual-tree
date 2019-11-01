@@ -44,6 +44,9 @@ class Table extends Base {
 		this.paintHeader()
 		this.paintTable()
 		console.log('渲染耗时: ',new Date() - t)
+		setTimeout(()=>{
+			console.log('渲染耗时2: ',new Date() - t)
+		})
 	}
 
 	paintLeft = () => {
