@@ -123,7 +123,7 @@ export default class Node extends React.Component {
                 width={200}
                 height={300}
                 nodeHeight={30}
-                checkable={true}
+                // checkable={true}
                 // radio={true}
                 renderCheckable={(item) => {
                     if (item.id == 1) {
@@ -140,12 +140,13 @@ export default class Node extends React.Component {
                 }}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                renderMouseEnter={(item) => {
-                    return <span style={{ cursor: 'pointer', marginLeft: '6px' }} onClick={() => this.onDelete(item)}>删除</span>
-                }}
+                // renderMouseEnter={(item) => {
+                //     return <span style={{ cursor: 'pointer', marginLeft: '6px' }} onClick={() => this.onDelete(item)}>删除</span>
+                // }}
                 searchKeys={this.state.searchKeys}
                 linkage={false}
-                draggable={true} />
+                // draggable={true} 
+                />
         </div>
 
     }
